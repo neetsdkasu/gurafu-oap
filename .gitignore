@@ -1,0 +1,10 @@
+
+/classes
+/tmpclasses
+/lib
+/tmplib
+
+*.class
+*.jar
+*.sh
+*.cmd
