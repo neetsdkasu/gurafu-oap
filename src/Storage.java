@@ -61,6 +61,58 @@ final class Storage
             && index < entries.length;
     }
 
+    static boolean saveEntry(Entry e)
+    {
+        ByteArrayOutputStream baos = null;
+        try
+        {
+            if (entries == null || entries.length == 0)
+            {
+                e.lastAccess = 1;
+            }
+            else
+            {
+                e.lastAccess = entries[0].lastAccess + 1;
+            }
+            baos = new ByteArrayOutputStream();
+            DataOutputStream dos = new DataOutputStream(baos);
+            e.writeTo(dos);
+            dos.flush();
+            byte[] data = baos.toByteArray();
+            if (e.id == 0)
+            {
+                e.id = mainListRS.addRecord(data, 0, data.length);
+            }
+            else
+            {
+                mainListRS.setRecord(e.id, data, 0, data.length);
+            }
+            return true;
+        }
+        catch (RecordStoreFullException _)
+        {
+            return false;
+        }
+        catch (Exception ex)
+        {
+            throw new RuntimeException(ex.toString());
+        }
+        finally
+        {
+            if (baos != null)
+            {
+                try
+                {
+                    baos.close();
+                }
+                catch (Exception __)
+                {
+                    // do nothing
+                }
+            }
+        }
+    }
+
     static void loadEntries()
     {
         RecordEnumeration re = null;
@@ -68,18 +120,26 @@ final class Storage
         {
             int n = mainListRS.getNumRecords();
 
-            entries = new Entry[n];
+            if (entries == null || entries.length != n)
+            {
+                entries = new Entry[n];
+            }
 
             re = mainListRS.enumerateRecords(null, lastAccessOrder, false);
             int i = 0;
             while (re.hasNextElement())
             {
-                entries[i] = new Entry();
-                entries[i].id = re.nextRecordId();
-                byte[] data = mainListRS.getRecord(entries[i].id);
+                Entry e = entries[i];
+                if (e == null)
+                {
+                    e = new Entry();
+                    entries[i] = e;
+                }
+                e.id = re.nextRecordId();
+                byte[] data = mainListRS.getRecord(e.id);
                 ByteArrayInputStream bais = new ByteArrayInputStream(data);
                 DataInputStream dis = new DataInputStream(bais);
-                entries[i].readFrom(dis);
+                e.readFrom(dis);
                 i++;
             }
         }

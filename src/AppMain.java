@@ -37,6 +37,29 @@ final class AppMain extends GameCanvas
         render();
     }
 
+    protected void keyRepeated(int keyCode)
+    {
+        if (getGameAction(keyCode) != FIRE)
+        {
+            keyPressed(keyCode);
+        }
+    }
+
+    protected void keyPressed(int keyCode)
+    {
+        switch (appState)
+        {
+        case 0:
+            keyPressedAppState_0(keyCode);
+            break;
+        case 1:
+            keyPressedAppState_1(keyCode);
+            break;
+        default:
+            break;
+        }
+    }
+
     private void render()
     {
         Graphics g = getGraphics();
@@ -174,6 +197,32 @@ final class AppMain extends GameCanvas
         g.setColor(sel == 0 ? 0xFF0000 : 0x777777);
         g.drawRect(20, 10, DISP_W-40, h);
 
+        if (view_top > 0)
+        {
+            g.setColor(0xFFFFFF);
+            g.fillTriangle(
+                DISP_W-14,
+                20+h,
+                DISP_W-18,
+                20+h+h,
+                DISP_W-10,
+                20+h+h
+            );
+        }
+
+        if (Storage.existsEntry(view_top+10))
+        {
+            g.setColor(0xFFFFFF);
+            g.fillTriangle(
+                DISP_W-14,
+                20+h+h*10,
+                DISP_W-18,
+                20+h*10,
+                DISP_W-10,
+                20+h*10
+            );
+        }
+
         for (int i = 0; i < 10; i++)
         {
             int vt = view_top + i;
@@ -188,29 +237,16 @@ final class AppMain extends GameCanvas
             g.fillRect(20, y, DISP_W-40, h);
             g.setColor(sel-1 == vt ? 0xFF0000 : 0x777777);
             g.drawRect(20, y, DISP_W-40, h);
-        }
-    }
-
-    protected void keyRepeated(int keyCode)
-    {
-        if (getGameAction(keyCode) != FIRE)
-        {
-            keyPressed(keyCode);
-        }
-    }
-
-    protected void keyPressed(int keyCode)
-    {
-        switch (appState)
-        {
-        case 0:
-            keyPressedAppState_0(keyCode);
-            break;
-        case 1:
-            keyPressedAppState_1(keyCode);
-            break;
-        default:
-            break;
+            if (Storage.existsEntry(vt))
+            {
+                g.setColor(0x000000);
+                g.drawString(
+                    Storage.entries[vt].title,
+                    DISP_W/2,
+                    y+h,
+                    Graphics.HCENTER|Graphics.BOTTOM
+                );
+            }
         }
     }
 
@@ -259,11 +295,42 @@ final class AppMain extends GameCanvas
             else if (sel == 1)
             {
                 newEntry.yAxisType++;
-                if (newEntry.yAxisType >  Entry.POINT_8)
+                if (newEntry.yAxisType > Entry.POINT_8)
                 {
                     newEntry.yAxisType = Entry.POINT_0;
                 }
                 render();
+            }
+            break;
+        case FIRE:
+            switch (sel)
+            {
+            case 0:
+            case 1:
+                keyPressedAppState_1(getKeyCode(RIGHT));
+                break;
+            case 2:
+                if (!Storage.saveEntry(newEntry))
+                {
+                    setTicker(new Ticker("storage is full"));
+                }
+                else
+                {
+                    appState = 0;
+                    sel = 0;
+                    view_top = 0;
+                    newEntry = null;
+                    Storage.loadEntries();
+                    render();
+                    return;
+                }
+                break;
+            case 3:
+                appState = 0;
+                render();
+                break;
+            default:
+                break;
             }
             break;
         default:
@@ -275,6 +342,39 @@ final class AppMain extends GameCanvas
     {
         switch (getGameAction(keyCode))
         {
+        case DOWN:
+            sel++;
+            if (!Storage.existsEntry(sel-1))
+            {
+                sel = 0;
+                view_top = 0;
+            }
+            if (sel > view_top + 10)
+            {
+                view_top = sel - 10;
+            }
+            render();
+            break;
+        case UP:
+            sel--;
+            if (sel < 0)
+            {
+                if (Storage.existsEntry(0))
+                {
+                    sel = Storage.entries.length;
+                    view_top = Math.max(0, sel - 10);
+                }
+                else
+                {
+                    sel = 0;
+                }
+            }
+            if (sel-1 < view_top)
+            {
+                view_top = Math.max(0, sel - 1);
+            }
+            render();
+            break;
         case FIRE:
             if (sel == 0)
             {
