@@ -65,17 +65,211 @@ final class Entry
         case Entry.COUNTER:
             return "Integer Counter";
         case Entry.DATE_Y:
-            return "Date YYYY";
+            return "Date YY";
         case Entry.DATE_YM:
-            return "Date YYYY-MM";
+            return "Date YY-MM";
         case Entry.DATE_YMD:
-            return "Date YYYY-MM-DD";
+            return "Date YY-MM-DD";
         case Entry.DATE_YMDH:
-            return "Date YYYY-MM-DD HH";
+            return "Date YY-MM-DD HH";
         case Entry.DATE_YMDHM:
-            return "Date YYYY-MM-DD HH:MM";
+            return "Date YY-MM-DD HH:MM";
         default:
             return "[UNKNOWN]";
         }
     }
+
+    int getYear(Element e)
+    {
+        return getYear(xAxisType, e.x);
+    }
+
+    void setYear(Element e, int year)
+    {
+        e.x = setYear(xAxisType, e.x, year);
+    }
+
+    int getMonth(Element e)
+    {
+        return getMonth(xAxisType, e.x);
+    }
+
+    void setMonth(Element e, int month)
+    {
+        e.x = setMonth(xAxisType, e.x, month);
+    }
+
+    int getDay(Element e)
+    {
+        return getDay(xAxisType, e.x);
+    }
+
+    void setDay(Element e, int day)
+    {
+        e.x = setDay(xAxisType, e.x, day);
+    }
+
+    int getHour(Element e)
+    {
+        return getHour(xAxisType, e.x);
+    }
+
+    void setHour(Element e, int hour)
+    {
+        e.x = setHour(xAxisType, e.x, hour);
+    }
+
+    int getMinute(Element e)
+    {
+        return getMinute(xAxisType, e.x);
+    }
+
+    void setMinute(Element e, int minute)
+    {
+        e.x = setMinute(xAxisType, e.x, minute);
+    }
+
+    static int getMinute(int type, int x)
+    {
+        return type == Entry.DATE_YMDHM
+             ? (x & 63)
+             : 0;
+    }
+
+    static int setMinute(int type, int x, int minute)
+    {
+        return type == Entry.DATE_YMDHM
+             ? (x ^ minute ^ (x & 63))
+             : x;
+    }
+
+    static int getHour(int type, int x)
+    {
+        switch (type)
+        {
+        case Entry.DATE_YMDH:
+            return x & 31;
+        case Entry.DATE_YMDHM:
+            return (x >> 6) & 31;
+        default:
+            return 0;
+        }
+    }
+
+    static int setHour(int type, int x, int hour)
+    {
+        switch (type)
+        {
+        case Entry.DATE_YMDH:
+            return x ^ hour ^ (x & 31);
+        case Entry.DATE_YMDHM:
+            return x ^ (hour << 6) ^ (x & (31 << 6));
+        default:
+            return x;
+        }
+    }
+
+    static int getDay(int type, int x)
+    {
+        switch (type)
+        {
+        case Entry.DATE_YMD:
+            return (x & 31) + 1;
+        case Entry.DATE_YMDH:
+            return ((x >> 5) & 31) + 1;
+        case Entry.DATE_YMDHM:
+            return ((x >> (5+6)) & 31) + 1;
+        default:
+            return 0;
+        }
+    }
+
+    static int setDay(int type, int x, int day)
+    {
+        switch (type)
+        {
+        case Entry.DATE_YMD:
+            return x ^ (day-1) ^ (x & 31);
+        case Entry.DATE_YMDH:
+            return x ^ ((day-1) << 5) ^ (x & (31 << 5));
+        case Entry.DATE_YMDHM:
+            return x ^ ((day-1) << (5+6)) ^ (x & (31 << (5+6)));
+        default:
+            return x;
+        }
+    }
+
+    static int getMonth(int type, int x)
+    {
+        switch (type)
+        {
+        case Entry.DATE_YM:
+            return (x & 15) + 1;
+        case Entry.DATE_YMD:
+            return ((x >> 5) & 15) + 1;
+        case Entry.DATE_YMDH:
+            return ((x >> (5+5)) & 15) + 1;
+        case Entry.DATE_YMDHM:
+            return ((x >> (5+5+6)) & 15) + 1;
+        default:
+            return 0;
+        }
+    }
+
+    static int setMonth(int type, int x, int month)
+    {
+        switch (type)
+        {
+        case Entry.DATE_YM:
+            return x ^ (month-1) ^ (x & 15);
+        case Entry.DATE_YMD:
+            return x ^ ((month-1) << 5) ^ (x & (15 << 5));
+        case Entry.DATE_YMDH:
+            return x ^ ((month-1) << (5+5)) ^ (x & (15 << (5+5)));
+        case Entry.DATE_YMDHM:
+            return x ^ ((month-1) << (5+5+6)) ^ (x & (15 << (5+5+6)));
+        default:
+            return x;
+        }
+    }
+
+    static int getYear(int type, int x)
+    {
+        switch (type)
+        {
+        case Entry.DATE_Y:
+            return x;
+        case Entry.DATE_YM:
+            return x >> 4;
+        case Entry.DATE_YMD:
+            return x >> (4+5);
+        case Entry.DATE_YMDH:
+            return x >> (4+5+5);
+        case Entry.DATE_YMDHM:
+            return x >> (4+5+5+6);
+        default:
+            return 0;
+        }
+    }
+
+    static int setYear(int type, int x, int year)
+    {
+        switch (type)
+        {
+        case Entry.DATE_Y:
+            return year;
+        case Entry.DATE_YM:
+            return x ^ ((year ^ (x >> 4)) << 4);
+        case Entry.DATE_YMD:
+            return x ^ ((year ^ (x >> (4+5))) << (4+5));
+        case Entry.DATE_YMDH:
+            return x ^ ((year ^ (x >> (4+5+5))) << (4+5+5));
+        case Entry.DATE_YMDHM:
+            return x ^ ((year ^ (x >> (4+5+5+6))) << (4+5+5+6));
+        default:
+            return x;
+        }
+    }
+
+
 }

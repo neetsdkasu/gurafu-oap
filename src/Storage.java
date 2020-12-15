@@ -6,9 +6,11 @@ final class Storage
     private Storage() {}
 
     private static RecordStore
-        mainListRS = null;
+        mainListRS = null,
+        dataRS = null;
 
     static Entry[] entries = null;
+    static Element[] elements = null;
 
     static void init()
     {
@@ -25,6 +27,7 @@ final class Storage
     static void release()
     {
         mainListRS = close(mainListRS);
+        dataRS = close(dataRS);
     }
 
     private static int readInt(byte[] buf, int i)
@@ -48,6 +51,23 @@ final class Storage
                 else
                 {
                     return t1 == t2
+                         ? RecordComparator.EQUIVALENT
+                         : RecordComparator.FOLLOWS;
+                }
+            }
+        },
+        xAxisOrder = new RecordComparator(){
+            public int compare(byte[] rec1, byte[] rec2)
+            {
+                int x1 = Storage.readInt(rec1, 0);
+                int x2 = Storage.readInt(rec2, 0);
+                if (x1 < x2)
+                {
+                    return RecordComparator.PRECEDES;
+                }
+                else
+                {
+                    return x1 == x2
                          ? RecordComparator.EQUIVALENT
                          : RecordComparator.FOLLOWS;
                 }
@@ -109,6 +129,78 @@ final class Storage
                 {
                     // do nothing
                 }
+            }
+        }
+    }
+
+    static void openData(Entry entry)
+    {
+        try
+        {
+            dataRS = RecordStore.openRecordStore(
+                "graph.data." + Integer.toString(entry.id),
+                true
+            );
+        }
+        catch (Exception ex)
+        {
+            throw new RuntimeException(ex.toString());
+        }
+    }
+
+    static void closeData()
+    {
+        dataRS = close(dataRS);
+    }
+
+    static Element getLastElement()
+    {
+        if (elements == null || elements.length == 0)
+        {
+            return null;
+        }
+        return elements[elements.length - 1];
+    }
+
+    static void loadElements()
+    {
+        RecordEnumeration re = null;
+        try
+        {
+            int n = dataRS.getNumRecords();
+
+            if (elements == null || elements.length != n)
+            {
+                elements = new Element[n];
+            }
+
+            re = dataRS.enumerateRecords(null, xAxisOrder, false);
+            int i = 0;
+            while (re.hasNextElement())
+            {
+                Element e = elements[i];
+                if (e == null)
+                {
+                    e = new Element();
+                    elements[i] = e;
+                }
+                e.id = re.nextRecordId();
+                byte[] data = mainListRS.getRecord(e.id);
+                ByteArrayInputStream bais = new ByteArrayInputStream(data);
+                DataInputStream dis = new DataInputStream(bais);
+                e.readFrom(dis);
+                i++;
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new RuntimeException(ex.toString());
+        }
+        finally
+        {
+            if (re != null)
+            {
+                re.destroy();
             }
         }
     }
