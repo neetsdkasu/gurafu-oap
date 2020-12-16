@@ -133,6 +133,17 @@ final class AppMain extends GameCanvas
             70
         );
 
+        if (sel >= 16 && sel < 32)
+        {
+            g.setColor(0x00FFFF);
+            g.drawRect(
+                DISP_W-40 - (sel&15)*18+2,
+                70,
+                14,
+                SMALL_FONT.getHeight()
+            );
+        }
+
         if (sel == 0)
         {
             g.setColor(0x00FFFF);
@@ -153,6 +164,17 @@ final class AppMain extends GameCanvas
             curElement.y,
             110
         );
+
+        if (sel >= 32)
+        {
+            g.setColor(0x00FFFF);
+            g.drawRect(
+                DISP_W-40 - (sel&15)*18+2,
+                110,
+                14,
+                SMALL_FONT.getHeight()
+            );
+        }
 
         if (sel == 1)
         {
@@ -496,23 +518,52 @@ final class AppMain extends GameCanvas
         if (keyCode == KEY_CLR)
         {
             keyCode = getKeyCode(FIRE);
-            sel = 3;
+            if (sel < 16)
+            {
+                sel = 3;
+            }
         }
         switch (getGameAction(keyCode))
         {
         case DOWN:
-            sel = (sel + 1) % 4;
+            if (sel < 16)
+            {
+                sel = (sel + 1) % 4;
+            }
             render();
             break;
         case UP:
-            sel = (sel + 3) % 4;
+            if (sel < 16)
+            {
+                sel = (sel + 3) % 4;
+            }
             render();
+            break;
+        case LEFT:
+            if (sel >= 16)
+            {
+                moveEditSelect(1);
+                render();
+            }
+            break;
+        case RIGHT:
+            if (sel >= 16)
+            {
+                moveEditSelect(-1);
+                render();
+            }
             break;
         case FIRE:
             switch (sel)
             {
             case 0: // x-axis
+                sel = 16;
+                render();
+                break;
             case 1: // y-axis
+                sel = 32;
+                render();
+                break;
             case 2: // OK
                 break;
             case 3: // CANCEL
@@ -522,8 +573,55 @@ final class AppMain extends GameCanvas
                 render();
                 break;
             default:
+                if (sel >= 16)
+                {
+                    sel = sel / 16 - 1;
+                    render();
+                }
                 break;
             }
+        default:
+            break;
+        }
+    }
+
+    private void moveEditSelect(int move)
+    {
+        int type = sel >= 32
+                 ? curEntry.yAxisType
+                 : curEntry.xAxisType;
+        int pos = sel & 15;
+        switch (type)
+        {
+        case Entry.POINT_0:
+        case Entry.POINT_1:
+        case Entry.POINT_2:
+        case Entry.POINT_3:
+        case Entry.POINT_4:
+        case Entry.POINT_5:
+        case Entry.POINT_6:
+        case Entry.POINT_7:
+        case Entry.POINT_8:
+            sel ^= pos ^ ((pos + move + 9) % 9);
+            break;
+        case Entry.COUNTER:
+            sel ^= pos ^ ((pos + move + 8) % 8);
+            break;
+        case Entry.DATE_Y:
+            sel ^= pos ^ ((pos + move + 2) % 2);
+            break;
+        case Entry.DATE_YM:
+            sel ^= pos ^ ((pos + move + 4) % 4);
+            break;
+        case Entry.DATE_YMD:
+            sel ^= pos ^ ((pos + move + 6) % 6);
+            break;
+        case Entry.DATE_YMDH:
+            sel ^= pos ^ ((pos + move + 8) % 8);
+            break;
+        case Entry.DATE_YMDHM:
+            sel ^= pos ^ ((pos + move + 10) % 10);
+            break;
         default:
             break;
         }
@@ -550,8 +648,7 @@ final class AppMain extends GameCanvas
             switch (sel)
             {
             case 0: // ADD DATA
-                curElement = new Element();
-                curElement.init(curEntry);
+                curElement = curEntry.newElement();
                 appState = 3;
                 render();
                 break;

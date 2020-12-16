@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.*;
 
 final class Entry
 {
@@ -271,5 +272,59 @@ final class Entry
         }
     }
 
+    Element newElement()
+    {
+        Element element = new Element();
+        Calendar cal = getCalnder();
+        switch (xAxisType)
+        {
+        case Entry.POINT_0:
+        case Entry.POINT_1:
+        case Entry.POINT_2:
+        case Entry.POINT_3:
+        case Entry.POINT_4:
+        case Entry.POINT_5:
+        case Entry.POINT_6:
+        case Entry.POINT_7:
+        case Entry.POINT_8:
+            break;
+        case Entry.COUNTER:
+            Storage.loadElements();
+            Element el = Storage.getLastElement();
+            if (el != null)
+            {
+                element.x = el.x + 1;
+            }
+            else
+            {
+                element.x = 1;
+            }
+            break;
+        case Entry.DATE_YMDHM:
+            setMinute(element, cal.get(Calendar.MINUTE));
+        case Entry.DATE_YMDH:
+            setHour(element, cal.get(Calendar.HOUR_OF_DAY));
+        case Entry.DATE_YMD:
+            setDay(element, cal.get(Calendar.DAY_OF_MONTH));
+        case Entry.DATE_YM:
+            setMonth(element, cal.get(Calendar.MONTH)+1);
+        case Entry.DATE_Y:
+            setYear(element, cal.get(Calendar.YEAR));
+            break;
+        default:
+            break;
+        }
+        return element;
+    }
 
+    static Calendar getCalnder()
+    {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        if (cal.get(Calendar.YEAR) < 2020)
+        {
+            cal.set(Calendar.YEAR, 2021);
+        }
+        return cal;
+    }
 }
