@@ -14,11 +14,11 @@ final class Entry
         POINT_7 = 7,  // 0.0000000
         POINT_8 = 8,  // .00000000
         COUNTER = 9,  // 00000001 (auto incremental)
-        DATE_Y = 10,     // YY
-        DATE_YM = 11,    // YY-MM
+        DATE_Y = 14,     // YY
+        DATE_YM = 13,    // YY-MM
         DATE_YMD = 12,   // YY-MM-DD
-        DATE_YMDH = 13,  // YY-MM-DD HH
-        DATE_YMDHM = 14; // YY-MM-DD HH:MM
+        DATE_YMDH = 11,  // YY-MM-DD HH
+        DATE_YMDHM = 10; // YY-MM-DD HH:MM
 
     int id = 0;
     String title = "";
@@ -65,16 +65,16 @@ final class Entry
             return "Decimal .00000000";
         case Entry.COUNTER:
             return "Integer Counter";
-        case Entry.DATE_Y:
-            return "Date YY";
-        case Entry.DATE_YM:
-            return "Date YY-MM";
-        case Entry.DATE_YMD:
-            return "Date YY-MM-DD";
-        case Entry.DATE_YMDH:
-            return "Date YY-MM-DD HH";
         case Entry.DATE_YMDHM:
             return "Date YY-MM-DD HH:MM";
+        case Entry.DATE_YMDH:
+            return "Date YY-MM-DD HH";
+        case Entry.DATE_YMD:
+            return "Date YY-MM-DD";
+        case Entry.DATE_YM:
+            return "Date YY-MM";
+        case Entry.DATE_Y:
+            return "Date YY";
         default:
             return "[UNKNOWN]";
         }
@@ -148,10 +148,10 @@ final class Entry
     {
         switch (type)
         {
-        case Entry.DATE_YMDH:
-            return x & 31;
         case Entry.DATE_YMDHM:
             return (x >> 6) & 31;
+        case Entry.DATE_YMDH:
+            return x & 31;
         default:
             return 0;
         }
@@ -161,10 +161,10 @@ final class Entry
     {
         switch (type)
         {
-        case Entry.DATE_YMDH:
-            return x ^ hour ^ (x & 31);
         case Entry.DATE_YMDHM:
             return x ^ (hour << 6) ^ (x & (31 << 6));
+        case Entry.DATE_YMDH:
+            return x ^ hour ^ (x & 31);
         default:
             return x;
         }
@@ -174,12 +174,12 @@ final class Entry
     {
         switch (type)
         {
-        case Entry.DATE_YMD:
-            return (x & 31) + 1;
-        case Entry.DATE_YMDH:
-            return ((x >> 5) & 31) + 1;
         case Entry.DATE_YMDHM:
             return ((x >> (5+6)) & 31) + 1;
+        case Entry.DATE_YMDH:
+            return ((x >> 5) & 31) + 1;
+        case Entry.DATE_YMD:
+            return (x & 31) + 1;
         default:
             return 0;
         }
@@ -189,12 +189,12 @@ final class Entry
     {
         switch (type)
         {
-        case Entry.DATE_YMD:
-            return x ^ (day-1) ^ (x & 31);
-        case Entry.DATE_YMDH:
-            return x ^ ((day-1) << 5) ^ (x & (31 << 5));
         case Entry.DATE_YMDHM:
             return x ^ ((day-1) << (5+6)) ^ (x & (31 << (5+6)));
+        case Entry.DATE_YMDH:
+            return x ^ ((day-1) << 5) ^ (x & (31 << 5));
+        case Entry.DATE_YMD:
+            return x ^ (day-1) ^ (x & 31);
         default:
             return x;
         }
@@ -204,14 +204,14 @@ final class Entry
     {
         switch (type)
         {
-        case Entry.DATE_YM:
-            return (x & 15) + 1;
-        case Entry.DATE_YMD:
-            return ((x >> 5) & 15) + 1;
-        case Entry.DATE_YMDH:
-            return ((x >> (5+5)) & 15) + 1;
         case Entry.DATE_YMDHM:
             return ((x >> (5+5+6)) & 15) + 1;
+        case Entry.DATE_YMDH:
+            return ((x >> (5+5)) & 15) + 1;
+        case Entry.DATE_YMD:
+            return ((x >> 5) & 15) + 1;
+        case Entry.DATE_YM:
+            return (x & 15) + 1;
         default:
             return 0;
         }
@@ -221,14 +221,14 @@ final class Entry
     {
         switch (type)
         {
-        case Entry.DATE_YM:
-            return x ^ (month-1) ^ (x & 15);
-        case Entry.DATE_YMD:
-            return x ^ ((month-1) << 5) ^ (x & (15 << 5));
-        case Entry.DATE_YMDH:
-            return x ^ ((month-1) << (5+5)) ^ (x & (15 << (5+5)));
         case Entry.DATE_YMDHM:
             return x ^ ((month-1) << (5+5+6)) ^ (x & (15 << (5+5+6)));
+        case Entry.DATE_YMDH:
+            return x ^ ((month-1) << (5+5)) ^ (x & (15 << (5+5)));
+        case Entry.DATE_YMD:
+            return x ^ ((month-1) << 5) ^ (x & (15 << 5));
+        case Entry.DATE_YM:
+            return x ^ (month-1) ^ (x & 15);
         default:
             return x;
         }
@@ -238,16 +238,16 @@ final class Entry
     {
         switch (type)
         {
-        case Entry.DATE_Y:
-            return x;
-        case Entry.DATE_YM:
-            return x >> 4;
-        case Entry.DATE_YMD:
-            return x >> (4+5);
-        case Entry.DATE_YMDH:
-            return x >> (4+5+5);
         case Entry.DATE_YMDHM:
             return x >> (4+5+5+6);
+        case Entry.DATE_YMDH:
+            return x >> (4+5+5);
+        case Entry.DATE_YMD:
+            return x >> (4+5);
+        case Entry.DATE_YM:
+            return x >> 4;
+        case Entry.DATE_Y:
+            return x;
         default:
             return 0;
         }
@@ -257,16 +257,16 @@ final class Entry
     {
         switch (type)
         {
-        case Entry.DATE_Y:
-            return year;
-        case Entry.DATE_YM:
-            return x ^ ((year ^ (x >> 4)) << 4);
-        case Entry.DATE_YMD:
-            return x ^ ((year ^ (x >> (4+5))) << (4+5));
-        case Entry.DATE_YMDH:
-            return x ^ ((year ^ (x >> (4+5+5))) << (4+5+5));
         case Entry.DATE_YMDHM:
             return x ^ ((year ^ (x >> (4+5+5+6))) << (4+5+5+6));
+        case Entry.DATE_YMDH:
+            return x ^ ((year ^ (x >> (4+5+5))) << (4+5+5));
+        case Entry.DATE_YMD:
+            return x ^ ((year ^ (x >> (4+5))) << (4+5));
+        case Entry.DATE_YM:
+            return x ^ ((year ^ (x >> 4)) << 4);
+        case Entry.DATE_Y:
+            return year;
         default:
             return x;
         }

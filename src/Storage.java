@@ -148,6 +148,50 @@ final class Storage
         }
     }
 
+    static boolean saveData(Element e)
+    {
+        ByteArrayOutputStream baos = null;
+        try
+        {
+            baos = new ByteArrayOutputStream(8);
+            DataOutputStream dos = new DataOutputStream(baos);
+            e.writeTo(dos);
+            dos.flush();
+            byte[] data = baos.toByteArray();
+            if (e.id == 0)
+            {
+                e.id = dataRS.addRecord(data, 0, data.length);
+            }
+            else
+            {
+                dataRS.setRecord(e.id, data, 0, data.length);
+            }
+            return true;
+        }
+        catch (RecordStoreFullException _)
+        {
+            return false;
+        }
+        catch (Exception ex)
+        {
+            throw new RuntimeException(ex.toString());
+        }
+        finally
+        {
+            if (baos != null)
+            {
+                try
+                {
+                    baos.close();
+                }
+                catch (Exception __)
+                {
+                    // do nothing
+                }
+            }
+        }
+    }
+
     static void closeData()
     {
         dataRS = close(dataRS);
@@ -185,7 +229,7 @@ final class Storage
                     elements[i] = e;
                 }
                 e.id = re.nextRecordId();
-                byte[] data = mainListRS.getRecord(e.id);
+                byte[] data = dataRS.getRecord(e.id);
                 ByteArrayInputStream bais = new ByteArrayInputStream(data);
                 DataInputStream dis = new DataInputStream(bais);
                 e.readFrom(dis);

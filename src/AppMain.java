@@ -52,6 +52,10 @@ final class AppMain extends GameCanvas
 
     protected void keyPressed(int keyCode)
     {
+        if (getTicker() != null)
+        {
+            setTicker(null);
+        }
         switch (appState)
         {
         case 0:
@@ -147,14 +151,14 @@ final class AppMain extends GameCanvas
         if (sel == 0)
         {
             g.setColor(0x00FFFF);
-            g.drawRect(20, 50, DISP_W-40, 40);
+            g.drawRect(20, 50, DISP_W-40, 50);
         }
 
         g.setColor(0xFFFFFF);
         g.drawString(
             "y-axis",
             30,
-            90,
+            110,
             Graphics.LEFT|Graphics.TOP
         );
 
@@ -162,7 +166,7 @@ final class AppMain extends GameCanvas
             g,
             curEntry.yAxisType,
             curElement.y,
-            110
+            130
         );
 
         if (sel >= 32)
@@ -170,7 +174,7 @@ final class AppMain extends GameCanvas
             g.setColor(0x00FFFF);
             g.drawRect(
                 DISP_W-40 - (sel&15)*18+2,
-                110,
+                130,
                 14,
                 SMALL_FONT.getHeight()
             );
@@ -179,11 +183,11 @@ final class AppMain extends GameCanvas
         if (sel == 1)
         {
             g.setColor(0x00FFFF);
-            g.drawRect(20, 90, DISP_W-40, 40);
+            g.drawRect(20, 110, DISP_W-40, 50);
         }
 
-        renderButton(g, "OK", sel == 2, 150);
-        renderButton(g, "CANCEL", sel == 3, 170);
+        renderButton(g, "OK", sel == 2, 180);
+        renderButton(g, "CANCEL", sel == 3, 200);
 
     }
 
@@ -250,7 +254,7 @@ final class AppMain extends GameCanvas
             size += 2;
             g.drawString(
                 "'",
-                DISP_W-40 - (1+2*(type-Entry.DATE_YMDH))*18,
+                DISP_W-40 - (1+2*(Entry.DATE_YMDH-type))*18,
                 y0+h,
                 Graphics.HCENTER|Graphics.BOTTOM
             );
@@ -261,7 +265,7 @@ final class AppMain extends GameCanvas
             size += 2;
             g.drawString(
                 "-",
-                DISP_W-40 - (1+2*(type-Entry.DATE_YMD))*18,
+                DISP_W-40 - (1+2*(Entry.DATE_YMD-type))*18,
                 y0+h,
                 Graphics.HCENTER|Graphics.BOTTOM
             );
@@ -272,15 +276,22 @@ final class AppMain extends GameCanvas
             size += 2;
             g.drawString(
                 "-",
-                DISP_W-40 - (1+2*(type-Entry.DATE_YM))*18,
+                DISP_W-40 - (1+2*(Entry.DATE_YM-type))*18,
                 y0+h,
                 Graphics.HCENTER|Graphics.BOTTOM
             );
         case Entry.DATE_Y:
-            int year = Entry.getYear(type, value) % 100;
+            int year = Entry.getYear(type, value);
             digits[size] = DIGITS[year % 10];
-            digits[size+1] = DIGITS[year / 10];
+            digits[size+1] = DIGITS[(year % 100) / 10];
             size += 2;
+            g.setColor(0x222222);
+            g.drawString(
+                Integer.toString(year),
+                DISP_W-40 - (2*(Entry.DATE_Y-type))*18,
+                y0+h,
+                Graphics.HCENTER|Graphics.TOP
+            );
             break;
         default:
             break;
@@ -530,12 +541,20 @@ final class AppMain extends GameCanvas
             {
                 sel = (sel + 1) % 4;
             }
+            else
+            {
+                editValue(-1);
+            }
             render();
             break;
         case UP:
             if (sel < 16)
             {
                 sel = (sel + 3) % 4;
+            }
+            else
+            {
+                editValue(1);
             }
             render();
             break;
@@ -565,7 +584,12 @@ final class AppMain extends GameCanvas
                 render();
                 break;
             case 2: // OK
-                break;
+                if (!Storage.saveData(curElement))
+                {
+                    setTicker(new Ticker("storage is full"));
+                    break;
+                }
+                setTicker(new Ticker("saved"));
             case 3: // CANCEL
                 curElement = null;
                 appState = 2;
@@ -582,6 +606,146 @@ final class AppMain extends GameCanvas
             }
         default:
             break;
+        }
+    }
+
+    private int changeDigit(int value, int pos, int changes, int ub)
+    {
+        final int[] DIG = new int[]{
+            1,
+            10,
+            100,
+            1000,
+            10000,
+            100000,
+            1000000,
+            10000000,
+            100000000,
+            1000000000
+        };
+        boolean s = value < 0;
+        value = Math.abs(value);
+        int d = (value / DIG[pos]) % 10;
+        int n = (d + changes + ub) % ub;
+        value += (n - d) * DIG[pos];
+        return s ? -value : value;
+    }
+
+    private void editValue(int changes)
+    {
+        int type = sel >= 32
+                 ? curEntry.yAxisType
+                 : curEntry.xAxisType;
+        int value = sel >= 32
+                 ? curElement.y
+                 : curElement.x;
+        int pos = sel & 15;
+        switch (type)
+        {
+        case Entry.POINT_0:
+        case Entry.POINT_1:
+        case Entry.POINT_2:
+        case Entry.POINT_3:
+        case Entry.POINT_4:
+        case Entry.POINT_5:
+        case Entry.POINT_6:
+        case Entry.POINT_7:
+        case Entry.POINT_8:
+            if (pos == 8)
+            {
+                value = -value;
+                break;
+            }
+        case Entry.COUNTER:
+            value = changeDigit(value, pos, changes, 10);
+            break;
+        case Entry.DATE_YMDHM:
+            if (pos < 2)
+            {
+                value = Entry.setMinute(
+                    type,
+                    value,
+                    Math.min(59, changeDigit(
+                        Entry.getMinute(type, value),
+                        pos,
+                        changes,
+                        10 - 4*pos
+                    ))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_YMDH:
+            if (pos < 2)
+            {
+                value = Entry.setHour(
+                    type,
+                    value,
+                    Math.min(23, changeDigit(
+                        Entry.getHour(type, value),
+                        pos,
+                        changes,
+                        10 - 7*pos
+                    ))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_YMD:
+            if (pos < 2)
+            {
+                value = Entry.setDay(
+                    type,
+                    value,
+                    Math.max(1, Math.min(31, changeDigit(
+                            Entry.getDay(type, value),
+                            pos,
+                            changes,
+                            10 - 6*pos
+                    )))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_YM:
+            if (pos < 2)
+            {
+                value = Entry.setMonth(
+                    type,
+                    value,
+                    Math.max(1, Math.min(12, changeDigit(
+                        Entry.getMonth(type, value),
+                        pos,
+                        changes,
+                        10 - 8*pos
+                    )))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_Y:
+            int y = changeDigit(
+                Entry.getYear(type, value) % 100,
+                pos,
+                changes,
+                10
+            );
+            value = Entry.setYear(
+                type,
+                value,
+                y < 45 ? (2000+y) : (1900+y)
+            );
+            break;
+        default:
+            break;
+        }
+        if (sel >= 32)
+        {
+            curElement.y = value;
+        }
+        else
+        {
+            curElement.x = value;
         }
     }
 
@@ -607,20 +771,20 @@ final class AppMain extends GameCanvas
         case Entry.COUNTER:
             sel ^= pos ^ ((pos + move + 8) % 8);
             break;
-        case Entry.DATE_Y:
-            sel ^= pos ^ ((pos + move + 2) % 2);
-            break;
-        case Entry.DATE_YM:
-            sel ^= pos ^ ((pos + move + 4) % 4);
-            break;
-        case Entry.DATE_YMD:
-            sel ^= pos ^ ((pos + move + 6) % 6);
+        case Entry.DATE_YMDHM:
+            sel ^= pos ^ ((pos + move + 10) % 10);
             break;
         case Entry.DATE_YMDH:
             sel ^= pos ^ ((pos + move + 8) % 8);
             break;
-        case Entry.DATE_YMDHM:
-            sel ^= pos ^ ((pos + move + 10) % 10);
+        case Entry.DATE_YMD:
+            sel ^= pos ^ ((pos + move + 6) % 6);
+            break;
+        case Entry.DATE_YM:
+            sel ^= pos ^ ((pos + move + 4) % 4);
+            break;
+        case Entry.DATE_Y:
+            sel ^= pos ^ ((pos + move + 2) % 2);
             break;
         default:
             break;
