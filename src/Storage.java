@@ -11,6 +11,11 @@ final class Storage
 
     static Entry[] entries = null;
     static Element[] elements = null;
+    static int[] intervals = null;
+
+    static Element
+        minElement = null,
+        maxElement = null;
 
     static void init()
     {
@@ -206,6 +211,18 @@ final class Storage
         return elements[elements.length - 1];
     }
 
+    static void calcIntervals(Entry e)
+    {
+        if (intervals == null || intervals.length != elements.length)
+        {
+            intervals = new int[elements.length];
+        }
+        for (int i = 1; i < elements.length; i++)
+        {
+            intervals[i] = e.interval(elements[i], elements[i-1]);
+        }
+    }
+
     static void loadElements()
     {
         RecordEnumeration re = null;
@@ -217,6 +234,9 @@ final class Storage
             {
                 elements = new Element[n];
             }
+
+            minElement = null;
+            maxElement = null;
 
             re = dataRS.enumerateRecords(null, xAxisOrder, false);
             int i = 0;
@@ -234,6 +254,14 @@ final class Storage
                 DataInputStream dis = new DataInputStream(bais);
                 e.readFrom(dis);
                 i++;
+                if (minElement == null || e.y < minElement.y)
+                {
+                    minElement = e;
+                }
+                if (maxElement == null || e.y > maxElement.y)
+                {
+                    maxElement = e;
+                }
             }
         }
         catch (Exception ex)

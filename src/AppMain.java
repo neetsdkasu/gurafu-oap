@@ -70,6 +70,9 @@ final class AppMain extends GameCanvas
         case 3:
             keyPressedAppState_3(keyCode);
             break;
+        case 4:
+            keyPressedAppState_4(keyCode);
+            break;
         default:
             break;
         }
@@ -98,11 +101,82 @@ final class AppMain extends GameCanvas
         case 3:
             renderAppState_3(g);
             break;
+        case 4:
+            renderAppState_4(g);
+            break;
         default:
             break;
         }
 
         flushGraphics();
+    }
+
+    void renderAppState_4(Graphics g)
+    {
+        g.setColor(0xFFFFFF);
+
+        g.drawString(
+            curEntry.title,
+            20,
+            0,
+            Graphics.LEFT|Graphics.TOP
+        );
+
+        g.fillRect(20, 20, 200, 200);
+
+        for (int i = 0; i < 41; i++)
+        {
+            g.setColor(
+                i % 10 == 0
+                ? 0x777777
+                : i % 5 == 0
+                ? 0x999999
+                : 0xBBBBBB
+            );
+            g.drawLine(20, i*5+20, 220, i*5+20);
+            g.drawLine(i*5+20, 20, i*5+20, 220);
+        }
+
+        int maxY = Storage.maxElement.y;
+        int minY = Storage.minElement.y;
+        if (maxY == minY)
+        {
+            maxY += 19;
+            minY -= 19;
+        }
+        int unit = Math.max(1, (maxY - minY) / 38);
+        if (unit == 1 && maxY - minY < 38)
+        {
+            int diff = 38 - (maxY - minY);
+            maxY += diff / 2;
+            minY -= diff / 2;
+        }
+
+        g.setColor(0x000000);
+        int last = Math.min(Storage.elements.length-1, 37);
+        int x = 215;
+        for (int i = last; i >= 0; i--)
+        {
+            Element e = Storage.elements[i];
+            int y = (maxY - e.y) / unit;
+            g.fillRect(
+                x - 1,
+                25 + y*5 - 1,
+                3,
+                3
+            );
+            if (i < last)
+            {
+                g.drawLine(
+                    x,
+                    25 + y*5,
+                    x + Storage.intervals[i+1]*5,
+                    25 + (maxY - Storage.elements[i+1].y)/unit*5
+                );
+            }
+            x -= Storage.intervals[i]*5;
+        }
+
     }
 
     void renderAppState_3(Graphics g)
@@ -242,13 +316,13 @@ final class AppMain extends GameCanvas
             }
             break;
         case Entry.DATE_YMDHM:
-            int minute = Entry.getMinute(type, value);
+            int minute = Element.getMinute(value);
             digits[size] = DIGITS[minute % 10];
             digits[size+1] = DIGITS[minute / 10];
             size = 2;
             g.drawString(":", DISP_W-40 - 1*18, y0+h, Graphics.HCENTER|Graphics.BOTTOM);
         case Entry.DATE_YMDH:
-            int hour = Entry.getHour(type, value);
+            int hour = Element.getHour(value);
             digits[size] = DIGITS[hour % 10];
             digits[size+1] = DIGITS[hour / 10];
             size += 2;
@@ -259,7 +333,7 @@ final class AppMain extends GameCanvas
                 Graphics.HCENTER|Graphics.BOTTOM
             );
         case Entry.DATE_YMD:
-            int day = Entry.getDay(type, value);
+            int day = Element.getDay(value);
             digits[size] = DIGITS[day % 10];
             digits[size+1] = DIGITS[day / 10];
             size += 2;
@@ -270,7 +344,7 @@ final class AppMain extends GameCanvas
                 Graphics.HCENTER|Graphics.BOTTOM
             );
         case Entry.DATE_YM:
-            int month = Entry.getMonth(type, value);
+            int month = Element.getMonth(value);
             digits[size] = DIGITS[month % 10];
             digits[size+1] = DIGITS[month / 10];
             size += 2;
@@ -281,7 +355,7 @@ final class AppMain extends GameCanvas
                 Graphics.HCENTER|Graphics.BOTTOM
             );
         case Entry.DATE_Y:
-            int year = Entry.getYear(type, value);
+            int year = Element.getYear(value);
             digits[size] = DIGITS[year % 10];
             digits[size+1] = DIGITS[(year % 100) / 10];
             size += 2;
@@ -362,16 +436,16 @@ final class AppMain extends GameCanvas
         final String[] names = new String[]{
             "ADD DATA",
             "SHOW GRAPH",
-            "SHOW DATA"
+            "SHOW DATA",
+            "EXPORT",
+            "DELETE",
+            "BACK"
         };
 
         for (int i = 0; i < names.length; i++)
         {
             renderButton(g, names[i], sel == i, 120+i*20);
         }
-
-        renderButton(g, "DELETE", sel == 3, 190);
-        renderButton(g, "BACK", sel == 4, 220);
 
     }
 
@@ -524,6 +598,15 @@ final class AppMain extends GameCanvas
         g.drawRect(20, y, DISP_W-40, h);
     }
 
+    private void keyPressedAppState_4(int keyCode)
+    {
+        if (keyCode == KEY_CLR)
+        {
+            appState = 2;
+            render();
+        }
+    }
+
     private void keyPressedAppState_3(int keyCode)
     {
         if (keyCode == KEY_CLR)
@@ -662,11 +745,10 @@ final class AppMain extends GameCanvas
         case Entry.DATE_YMDHM:
             if (pos < 2)
             {
-                value = Entry.setMinute(
-                    type,
+                value = Element.setMinute(
                     value,
                     Math.min(59, changeDigit(
-                        Entry.getMinute(type, value),
+                        Element.getMinute(value),
                         pos,
                         changes,
                         10 - 4*pos
@@ -678,11 +760,10 @@ final class AppMain extends GameCanvas
         case Entry.DATE_YMDH:
             if (pos < 2)
             {
-                value = Entry.setHour(
-                    type,
+                value = Element.setHour(
                     value,
                     Math.min(23, changeDigit(
-                        Entry.getHour(type, value),
+                        Element.getHour(value),
                         pos,
                         changes,
                         10 - 7*pos
@@ -694,11 +775,10 @@ final class AppMain extends GameCanvas
         case Entry.DATE_YMD:
             if (pos < 2)
             {
-                value = Entry.setDay(
-                    type,
+                value = Element.setDay(
                     value,
                     Math.max(1, Math.min(31, changeDigit(
-                            Entry.getDay(type, value),
+                            Element.getDay(value),
                             pos,
                             changes,
                             10 - 6*pos
@@ -710,11 +790,10 @@ final class AppMain extends GameCanvas
         case Entry.DATE_YM:
             if (pos < 2)
             {
-                value = Entry.setMonth(
-                    type,
+                value = Element.setMonth(
                     value,
                     Math.max(1, Math.min(12, changeDigit(
-                        Entry.getMonth(type, value),
+                        Element.getMonth(value),
                         pos,
                         changes,
                         10 - 8*pos
@@ -725,13 +804,12 @@ final class AppMain extends GameCanvas
             pos -= 2;
         case Entry.DATE_Y:
             int y = changeDigit(
-                Entry.getYear(type, value) % 100,
+                Element.getYear(value) % 100,
                 pos,
                 changes,
                 10
             );
-            value = Entry.setYear(
-                type,
+            value = Element.setYear(
                 value,
                 y < 45 ? (2000+y) : (1900+y)
             );
@@ -796,16 +874,16 @@ final class AppMain extends GameCanvas
         if (keyCode == KEY_CLR)
         {
             keyCode = getKeyCode(FIRE);
-            sel = 4;
+            sel = 5;
         }
         switch (getGameAction(keyCode))
         {
         case UP:
-            sel = (sel + 4) % 5;
+            sel = (sel + 5) % 6;
             render();
             break;
         case DOWN:
-            sel = (sel + 1) % 5;
+            sel = (sel + 1) % 6;
             render();
             break;
         case FIRE:
@@ -817,12 +895,38 @@ final class AppMain extends GameCanvas
                 render();
                 break;
             case 1: // SHOW GRAPH
+                Storage.loadElements();
+                if (Storage.getLastElement() == null)
+                {
+                    setTicker(new Ticker("no data"));
+                    break;
+                }
+                Storage.calcIntervals(curEntry);
+                appState = 4;
+                render();
                 break;
             case 2: // SHOW DATA
+                Storage.loadElements();
+                if (Storage.getLastElement() == null)
+                {
+                    setTicker(new Ticker("no data"));
+                    break;
+                }
+                // TODO
                 break;
-            case 3: // DELETE
+            case 3: // EXPORT
+                Storage.loadElements();
+                if (Storage.getLastElement() == null)
+                {
+                    setTicker(new Ticker("no data"));
+                    break;
+                }
+                // TODO
                 break;
-            case 4: // BACK
+            case 4: // DELETE
+                // TODO
+                break;
+            case 5: // BACK
                 Storage.closeData();
                 curEntry = null;
                 appState = 0;
@@ -863,7 +967,7 @@ final class AppMain extends GameCanvas
                 curEntry.xAxisType--;
                 if (curEntry.xAxisType < 0)
                 {
-                    curEntry.xAxisType = Entry.DATE_YMDHM;
+                    curEntry.xAxisType = Entry.DATE_Y;
                 }
                 render();
             }
@@ -881,7 +985,7 @@ final class AppMain extends GameCanvas
             if (sel == 0)
             {
                 curEntry.xAxisType++;
-                if (curEntry.xAxisType > Entry.DATE_YMDHM)
+                if (curEntry.xAxisType > Entry.DATE_Y)
                 {
                     curEntry.xAxisType = Entry.POINT_0;
                 }

@@ -80,198 +80,6 @@ final class Entry
         }
     }
 
-    int getYear(Element e)
-    {
-        return getYear(xAxisType, e.x);
-    }
-
-    void setYear(Element e, int year)
-    {
-        e.x = setYear(xAxisType, e.x, year);
-    }
-
-    int getMonth(Element e)
-    {
-        return getMonth(xAxisType, e.x);
-    }
-
-    void setMonth(Element e, int month)
-    {
-        e.x = setMonth(xAxisType, e.x, month);
-    }
-
-    int getDay(Element e)
-    {
-        return getDay(xAxisType, e.x);
-    }
-
-    void setDay(Element e, int day)
-    {
-        e.x = setDay(xAxisType, e.x, day);
-    }
-
-    int getHour(Element e)
-    {
-        return getHour(xAxisType, e.x);
-    }
-
-    void setHour(Element e, int hour)
-    {
-        e.x = setHour(xAxisType, e.x, hour);
-    }
-
-    int getMinute(Element e)
-    {
-        return getMinute(xAxisType, e.x);
-    }
-
-    void setMinute(Element e, int minute)
-    {
-        e.x = setMinute(xAxisType, e.x, minute);
-    }
-
-    static int getMinute(int type, int x)
-    {
-        return type == Entry.DATE_YMDHM
-             ? (x & 63)
-             : 0;
-    }
-
-    static int setMinute(int type, int x, int minute)
-    {
-        return type == Entry.DATE_YMDHM
-             ? (x ^ minute ^ (x & 63))
-             : x;
-    }
-
-    static int getHour(int type, int x)
-    {
-        switch (type)
-        {
-        case Entry.DATE_YMDHM:
-            return (x >> 6) & 31;
-        case Entry.DATE_YMDH:
-            return x & 31;
-        default:
-            return 0;
-        }
-    }
-
-    static int setHour(int type, int x, int hour)
-    {
-        switch (type)
-        {
-        case Entry.DATE_YMDHM:
-            return x ^ (hour << 6) ^ (x & (31 << 6));
-        case Entry.DATE_YMDH:
-            return x ^ hour ^ (x & 31);
-        default:
-            return x;
-        }
-    }
-
-    static int getDay(int type, int x)
-    {
-        switch (type)
-        {
-        case Entry.DATE_YMDHM:
-            return ((x >> (5+6)) & 31) + 1;
-        case Entry.DATE_YMDH:
-            return ((x >> 5) & 31) + 1;
-        case Entry.DATE_YMD:
-            return (x & 31) + 1;
-        default:
-            return 0;
-        }
-    }
-
-    static int setDay(int type, int x, int day)
-    {
-        switch (type)
-        {
-        case Entry.DATE_YMDHM:
-            return x ^ ((day-1) << (5+6)) ^ (x & (31 << (5+6)));
-        case Entry.DATE_YMDH:
-            return x ^ ((day-1) << 5) ^ (x & (31 << 5));
-        case Entry.DATE_YMD:
-            return x ^ (day-1) ^ (x & 31);
-        default:
-            return x;
-        }
-    }
-
-    static int getMonth(int type, int x)
-    {
-        switch (type)
-        {
-        case Entry.DATE_YMDHM:
-            return ((x >> (5+5+6)) & 15) + 1;
-        case Entry.DATE_YMDH:
-            return ((x >> (5+5)) & 15) + 1;
-        case Entry.DATE_YMD:
-            return ((x >> 5) & 15) + 1;
-        case Entry.DATE_YM:
-            return (x & 15) + 1;
-        default:
-            return 0;
-        }
-    }
-
-    static int setMonth(int type, int x, int month)
-    {
-        switch (type)
-        {
-        case Entry.DATE_YMDHM:
-            return x ^ ((month-1) << (5+5+6)) ^ (x & (15 << (5+5+6)));
-        case Entry.DATE_YMDH:
-            return x ^ ((month-1) << (5+5)) ^ (x & (15 << (5+5)));
-        case Entry.DATE_YMD:
-            return x ^ ((month-1) << 5) ^ (x & (15 << 5));
-        case Entry.DATE_YM:
-            return x ^ (month-1) ^ (x & 15);
-        default:
-            return x;
-        }
-    }
-
-    static int getYear(int type, int x)
-    {
-        switch (type)
-        {
-        case Entry.DATE_YMDHM:
-            return x >> (4+5+5+6);
-        case Entry.DATE_YMDH:
-            return x >> (4+5+5);
-        case Entry.DATE_YMD:
-            return x >> (4+5);
-        case Entry.DATE_YM:
-            return x >> 4;
-        case Entry.DATE_Y:
-            return x;
-        default:
-            return 0;
-        }
-    }
-
-    static int setYear(int type, int x, int year)
-    {
-        switch (type)
-        {
-        case Entry.DATE_YMDHM:
-            return x ^ ((year ^ (x >> (4+5+5+6))) << (4+5+5+6));
-        case Entry.DATE_YMDH:
-            return x ^ ((year ^ (x >> (4+5+5))) << (4+5+5));
-        case Entry.DATE_YMD:
-            return x ^ ((year ^ (x >> (4+5))) << (4+5));
-        case Entry.DATE_YM:
-            return x ^ ((year ^ (x >> 4)) << 4);
-        case Entry.DATE_Y:
-            return year;
-        default:
-            return x;
-        }
-    }
-
     Element newElement()
     {
         Element element = new Element();
@@ -301,15 +109,15 @@ final class Entry
             }
             break;
         case Entry.DATE_YMDHM:
-            setMinute(element, cal.get(Calendar.MINUTE));
+            element.setMinute(cal.get(Calendar.MINUTE));
         case Entry.DATE_YMDH:
-            setHour(element, cal.get(Calendar.HOUR_OF_DAY));
+            element.setHour(cal.get(Calendar.HOUR_OF_DAY));
         case Entry.DATE_YMD:
-            setDay(element, cal.get(Calendar.DAY_OF_MONTH));
+            element.setDay(cal.get(Calendar.DAY_OF_MONTH));
         case Entry.DATE_YM:
-            setMonth(element, cal.get(Calendar.MONTH)+1);
+            element.setMonth(cal.get(Calendar.MONTH)+1);
         case Entry.DATE_Y:
-            setYear(element, cal.get(Calendar.YEAR));
+            element.setYear(cal.get(Calendar.YEAR));
             break;
         default:
             break;
@@ -326,5 +134,83 @@ final class Entry
             cal.set(Calendar.YEAR, 2021);
         }
         return cal;
+    }
+
+    static boolean isLeapYear(int year)
+    {
+        return year % 4 == 0
+            && (year % 400 == 0 || year % 100 != 0);
+    }
+
+    static boolean isOverLeap(Element e)
+    {
+        return isLeapYear(e.getYear()) && e.getMonth() > 2;
+    }
+
+    static int diffYMD(Element e1, Element e2)
+    {
+        final int[] DAYSUM = new int[]{
+            0,
+            31,
+            31+28,
+            31+28+31,
+            31+28+31+30,
+            31+28+31+30+31,
+            31+28+31+30+31+30,
+            31+28+31+30+31+30+31,
+            31+28+31+30+31+30+31+31,
+            31+28+31+30+31+30+31+31+30,
+            31+28+31+30+31+30+31+31+30+31,
+            31+28+31+30+31+30+31+31+30+31+30,
+            31+28+31+30+31+30+31+31+30+31+30+31
+        };
+
+        int diff = (DAYSUM[e1.getMonth()] + (isOverLeap(e1) ? 1 : 0))
+                 - (DAYSUM[e2.getMonth()] + (isOverLeap(e2) ? 1 : 0))
+                 + (e1.getDay() - e2.getDay());
+        for (int year = e2.getYear(); year < e1.getYear(); year++)
+        {
+            diff += isLeapYear(year) ? 366 : 365;
+        }
+        return diff;
+    }
+
+    int interval(Element e1, Element e2)
+    {
+
+        if (e1.y < e2.y)
+        {
+            return -interval(e2, e1);
+        }
+        switch (xAxisType)
+        {
+        case Entry.POINT_0:
+        case Entry.POINT_1:
+        case Entry.POINT_2:
+        case Entry.POINT_3:
+        case Entry.POINT_4:
+        case Entry.POINT_5:
+        case Entry.POINT_6:
+        case Entry.POINT_7:
+        case Entry.POINT_8:
+        case Entry.COUNTER:
+            return e1.y - e2.y;
+        case Entry.DATE_YMDHM:
+            return diffYMD(e1, e2) * 24 * 60
+                 + (e1.getHour() - e2.getHour()) * 60
+                 + (e1.getMinute() - e2.getMinute());
+        case Entry.DATE_YMDH:
+            return diffYMD(e1, e2) * 24
+                 + (e1.getHour() - e2.getHour());
+        case Entry.DATE_YMD:
+            return diffYMD(e1, e2);
+        case Entry.DATE_YM:
+            return 12 * (e1.getYear() - e2.getYear())
+                 + (e1.getMonth() - e2.getMonth());
+        case Entry.DATE_Y:
+            return e1.y - e2.y;
+        default:
+            return 0;
+        }
     }
 }
