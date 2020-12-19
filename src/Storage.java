@@ -17,6 +17,11 @@ final class Storage
         minElement = null,
         maxElement = null;
 
+    static int
+        unit = 1,
+        top = 1,
+        bottom = 0;
+
     static void init()
     {
         try
@@ -221,6 +226,53 @@ final class Storage
         {
             intervals[i] = e.interval(elements[i], elements[i-1]);
         }
+    }
+
+    static void calcUnit()
+    {
+        int maxY = maxElement.y;
+        int minY = minElement.y;
+        if (maxY - minY < 38)
+        {
+            int d = 38 - (maxY - minY);
+            maxY += d - d / 2;
+            minY -= d / 2;
+        }
+        int p = 1;
+        int maxR = 0;
+        unit = 1;
+        top = maxY;
+        bottom = minY;
+        for (int i = 0; i < 7; i++)
+        {
+            for (int k = 1; k < 10; k++)
+            {
+                int s = k * p;
+                int t = (maxY / s) * s + s;
+                int b = (minY / s) * s - s;
+                int r = (t - b) / s;
+                if (r <= 40 && r > maxR)
+                {
+                    maxR = r;
+                    unit = s;
+                    top = t;
+                    bottom = b;
+                }
+            }
+            p *= 10;
+        }
+        if (maxR < 40)
+        {
+            int d = 40 - maxR;
+            top += (d - d / 2) * unit;
+            bottom -= (d / 2) * unit;
+        }
+        // System.out.println("max" + maxY);
+        // System.out.println("min" + minY);
+        // System.out.println("unit" + unit);
+        // System.out.println("top" + top);
+        // System.out.println("bottom" + bottom);
+        // System.out.println("maxR" + maxR);
     }
 
     static void loadElements()

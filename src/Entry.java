@@ -80,6 +80,60 @@ final class Entry
         }
     }
 
+    String scaleX(int v)
+    {
+        return scale(xAxisType, v);
+    }
+
+    String scaleY(int v)
+    {
+        return scale(yAxisType, v);
+    }
+
+    static String scale(int type, int v)
+    {
+        final int[] SCALE = new int[]{
+            1,
+            10,
+            100,
+            1000,
+            10000,
+            100000,
+            1000000,
+            10000000,
+            100000000
+        };
+        switch (type)
+        {
+        case Entry.POINT_0:
+            return Integer.toString(v);
+        case Entry.POINT_1:
+        case Entry.POINT_2:
+        case Entry.POINT_4:
+        case Entry.POINT_5:
+        case Entry.POINT_6:
+        case Entry.POINT_7:
+            int s = SCALE[type];
+            return Integer.toString(v / s)
+                + "."
+                + Integer.toString(v % s + s).substring(1);
+        case Entry.COUNTER:
+            return Integer.toString(v);
+        case Entry.DATE_YMDHM:
+            return Integer.toString(Element.getMinute(v));
+        case Entry.DATE_YMDH:
+            return Integer.toString(Element.getHour(v));
+        case Entry.DATE_YMD:
+            return Integer.toString(Element.getDay(v));
+        case Entry.DATE_YM:
+            return Integer.toString(Element.getMonth(v));
+        case Entry.DATE_Y:
+            return Integer.toString(Element.getYear(v%100+100)).substring(1);
+        default:
+            return "";
+        }
+    }
+
     Element newElement()
     {
         Element element = new Element();
@@ -177,8 +231,7 @@ final class Entry
 
     int interval(Element e1, Element e2)
     {
-
-        if (e1.y < e2.y)
+        if (e1.x < e2.x)
         {
             return -interval(e2, e1);
         }
@@ -194,7 +247,7 @@ final class Entry
         case Entry.POINT_7:
         case Entry.POINT_8:
         case Entry.COUNTER:
-            return e1.y - e2.y;
+            return e1.x - e2.x;
         case Entry.DATE_YMDHM:
             return diffYMD(e1, e2) * 24 * 60
                  + (e1.getHour() - e2.getHour()) * 60
@@ -208,7 +261,7 @@ final class Entry
             return 12 * (e1.getYear() - e2.getYear())
                  + (e1.getMonth() - e2.getMonth());
         case Entry.DATE_Y:
-            return e1.y - e2.y;
+            return e1.x - e2.x;
         default:
             return 0;
         }

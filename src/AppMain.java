@@ -137,31 +137,32 @@ final class AppMain extends GameCanvas
             g.drawLine(i*5+20, 20, i*5+20, 220);
         }
 
-        int maxY = Storage.maxElement.y;
-        int minY = Storage.minElement.y;
-        if (maxY == minY)
+        g.setColor(0x666666);
+        int scY = Storage.top;
+        for (int i = 0; i < 41; i += 5)
         {
-            maxY += 19;
-            minY -= 19;
-        }
-        int unit = Math.max(1, (maxY - minY) / 38);
-        if (unit == 1 && maxY - minY < 38)
-        {
-            int diff = 38 - (maxY - minY);
-            maxY += diff / 2;
-            minY -= diff / 2;
+            g.drawString(
+                curEntry.scaleY(scY),
+                0,
+                i*5+20 - SMALL_FONT.getHeight()/2,
+                Graphics.LEFT|Graphics.TOP
+            );
+            scY -= Storage.unit * 5;
         }
 
+        int top = Storage.top;
+        int bottom = Storage.bottom;
+
         g.setColor(0x000000);
-        int last = Math.min(Storage.elements.length-1, 37);
+        int last = Math.min(Storage.elements.length-1, 39);
         int x = 215;
         for (int i = last; i >= 0; i--)
         {
             Element e = Storage.elements[i];
-            int y = (maxY - e.y) / unit;
+            int y = 200 * (e.y - bottom) / (top - bottom);
             g.fillRect(
                 x - 1,
-                25 + y*5 - 1,
+                220 - y - 1,
                 3,
                 3
             );
@@ -169,10 +170,14 @@ final class AppMain extends GameCanvas
             {
                 g.drawLine(
                     x,
-                    25 + y*5,
+                    220 - y,
                     x + Storage.intervals[i+1]*5,
-                    25 + (maxY - Storage.elements[i+1].y)/unit*5
+                    220 - 200 * (Storage.elements[i+1].y - bottom) / (top - bottom)
                 );
+            }
+            if (x < 20)
+            {
+                break;
             }
             x -= Storage.intervals[i]*5;
         }
@@ -902,6 +907,7 @@ final class AppMain extends GameCanvas
                     break;
                 }
                 Storage.calcIntervals(curEntry);
+                Storage.calcUnit();
                 appState = 4;
                 render();
                 break;
