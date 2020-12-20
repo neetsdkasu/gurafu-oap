@@ -701,6 +701,38 @@ final class AppMain extends GameCanvas
         g.drawRect(20, y, DISP_W-40, h);
     }
 
+    private static void setRightView(int newRightEnd, boolean force)
+    {
+        if (force || Storage.getInterval(0, Storage.elements.length - 1) >= 39)
+        {
+            viewTop = 0;
+            rightEnd = newRightEnd;
+            leftEnd = rightEnd;
+            while (leftEnd > 0 && Storage.getInterval(leftEnd, rightEnd) < 39)
+            {
+                leftEnd--;
+            }
+            Storage.calcScaleX(curEntry, rightEnd, false);
+            sel = (rightEnd << 1) | 1;
+        }
+    }
+
+    private static void setLeftView(int newLeftEnd, boolean force)
+    {
+        if (force || Storage.getInterval(0, Storage.elements.length - 1) >= 39)
+        {
+            viewTop = 1;
+            leftEnd = newLeftEnd;
+            rightEnd = leftEnd;
+            while (rightEnd+1 < Storage.elements.length && Storage.getInterval(leftEnd, rightEnd) < 39)
+            {
+                rightEnd++;
+            }
+            Storage.calcScaleX(curEntry, leftEnd, true);
+            sel = (leftEnd << 1) | 1;
+        }
+    }
+
     private void keyPressedAppState_4(int keyCode)
     {
         if (keyCode == KEY_CLR)
@@ -714,8 +746,15 @@ final class AppMain extends GameCanvas
         case DOWN:
             if (sel == 0)
             {
-                sel = (rightEnd << 1) | 1;
-                curElement = Storage.elements[rightEnd];
+                if (viewTop == 0)
+                {
+                    sel = (rightEnd << 1) | 1;
+                }
+                else
+                {
+                    sel = (leftEnd << 1) | 1;
+                }
+                curElement = Storage.elements[sel >> 1];
                 valueX = curEntry.valueXString(curElement);
                 valueY = curEntry.valueYString(curElement);
             }
@@ -731,29 +770,11 @@ final class AppMain extends GameCanvas
                 sel -= 2;
                 if (sel < 0)
                 {
-                    viewTop = 0;
-                    rightEnd = Storage.elements.length - 1;
-                    leftEnd = rightEnd;
-                    while (leftEnd > 0 && Storage.getInterval(leftEnd, rightEnd) < 40)
-                    {
-                        leftEnd--;
-                    }
-                    sel = (rightEnd << 1) | 1;
-                    Storage.calcScaleX(curEntry, rightEnd, false);
+                    setRightView(Storage.elements.length - 1, false);
                 }
                 else if ((sel >> 1) <= leftEnd - viewTop)
                 {
-                    if (Storage.getInterval(0, Storage.elements.length - 1) >= 39)
-                    {
-                        viewTop = 1;
-                        leftEnd = sel >> 1;
-                        rightEnd = leftEnd;
-                        while (rightEnd+1 < Storage.elements.length && Storage.getInterval(leftEnd, rightEnd) < 40)
-                        {
-                            rightEnd++;
-                        }
-                        Storage.calcScaleX(curEntry, leftEnd, true);
-                    }
+                    setLeftView(sel >> 1, false);
                 }
                 curElement = Storage.elements[sel >> 1];
                 valueX = curEntry.valueXString(curElement);
@@ -767,29 +788,11 @@ final class AppMain extends GameCanvas
                 sel += 2;
                 if ((sel >> 1) >= Storage.elements.length)
                 {
-                    sel = 1;
-                    if (Storage.getInterval(0, Storage.elements.length - 1) >= 39)
-                    {
-                        viewTop = 1;
-                        leftEnd = 0;
-                        rightEnd = leftEnd;
-                        while (rightEnd+1 < Storage.elements.length && Storage.getInterval(leftEnd, rightEnd) < 40)
-                        {
-                            rightEnd++;
-                        }
-                        Storage.calcScaleX(curEntry, leftEnd, true);
-                    }
+                    setLeftView(0, false);
                 }
                 else if ((sel >> 1) > rightEnd - viewTop)
                 {
-                    viewTop = 0;
-                    rightEnd = sel >> 1;
-                    leftEnd = rightEnd;
-                    while (leftEnd > 0 && Storage.getInterval(leftEnd, rightEnd) < 40)
-                    {
-                        leftEnd--;
-                    }
-                    Storage.calcScaleX(curEntry, rightEnd, false);
+                    setRightView(sel >> 1, false);
                 }
                 curElement = Storage.elements[sel >> 1];
                 valueX = curEntry.valueXString(curElement);
@@ -1109,15 +1112,7 @@ final class AppMain extends GameCanvas
                 Storage.calcIntervals(curEntry);
                 Storage.calcUnit();
                 Storage.calcScaleY(curEntry);
-                viewTop = 0;
-                rightEnd = Storage.elements.length - 1;
-                leftEnd = rightEnd;
-                while (leftEnd > 0 && Storage.getInterval(leftEnd, rightEnd) < 40)
-                {
-                    leftEnd--;
-                }
-                Storage.calcScaleX(curEntry, rightEnd, false);
-                sel = (rightEnd << 1) | 1;
+                setRightView(Storage.elements.length - 1, true);
                 valueX = curEntry.valueXString(curElement);
                 valueY = curEntry.valueYString(curElement);
                 appState = 4;
