@@ -113,10 +113,20 @@ final class Entry
         case Entry.POINT_5:
         case Entry.POINT_6:
         case Entry.POINT_7:
+        case Entry.POINT_8:
             int s = SCALE[type];
-            return Integer.toString(v / s)
+            String st = Integer.toString(v / s)
                 + "."
                 + Integer.toString(v % s + s).substring(1);
+            for (int i = st.length() - 1; i >= 0; i--)
+            {
+                if (st.charAt(i) != '0')
+                {
+                    st = st.substring(0, i + 1);
+                    break;
+                }
+            }
+            return st;
         case Entry.COUNTER:
             return Integer.toString(v);
         case Entry.DATE_YMDHM:
@@ -198,27 +208,39 @@ final class Entry
 
     static boolean isOverLeap(Element e)
     {
-        return isLeapYear(e.getYear()) && e.getMonth() > 2;
+        return isOverLeap(e.getYear(), e.getMonth());
     }
+
+    static boolean isOverLeap(int year, int month)
+    {
+        return isLeapYear(year) && month > 2;
+    }
+
+    static int getDaysOfMonth(int year, int month)
+    {
+        return DAYSUM[month]
+             - DAYSUM[month - 1]
+             + (isLeapYear(year) && month == 2 ? 1 : 0);
+    }
+
+    static final int[] DAYSUM = new int[]{
+        0,
+        31,
+        31+28,
+        31+28+31,
+        31+28+31+30,
+        31+28+31+30+31,
+        31+28+31+30+31+30,
+        31+28+31+30+31+30+31,
+        31+28+31+30+31+30+31+31,
+        31+28+31+30+31+30+31+31+30,
+        31+28+31+30+31+30+31+31+30+31,
+        31+28+31+30+31+30+31+31+30+31+30,
+        31+28+31+30+31+30+31+31+30+31+30+31
+    };
 
     static int diffYMD(Element e1, Element e2)
     {
-        final int[] DAYSUM = new int[]{
-            0,
-            31,
-            31+28,
-            31+28+31,
-            31+28+31+30,
-            31+28+31+30+31,
-            31+28+31+30+31+30,
-            31+28+31+30+31+30+31,
-            31+28+31+30+31+30+31+31,
-            31+28+31+30+31+30+31+31+30,
-            31+28+31+30+31+30+31+31+30+31,
-            31+28+31+30+31+30+31+31+30+31+30,
-            31+28+31+30+31+30+31+31+30+31+30+31
-        };
-
         int diff = (DAYSUM[e1.getMonth()] + (isOverLeap(e1) ? 1 : 0))
                  - (DAYSUM[e2.getMonth()] + (isOverLeap(e2) ? 1 : 0))
                  + (e1.getDay() - e2.getDay());
@@ -261,9 +283,10 @@ final class Entry
             return 12 * (e1.getYear() - e2.getYear())
                  + (e1.getMonth() - e2.getMonth());
         case Entry.DATE_Y:
-            return e1.x - e2.x;
+            return e1.getYear() - e2.getYear();
         default:
             return 0;
         }
     }
+
 }

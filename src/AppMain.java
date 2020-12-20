@@ -18,7 +18,9 @@ final class AppMain extends GameCanvas
     private static int
         appState = 0,
         sel = 0,
-        view_top = 0;
+        viewTop = 0,
+        leftEnd = 0,
+        rightEnd = 0;
 
     private static Entry
         curEntry = null;
@@ -138,48 +140,66 @@ final class AppMain extends GameCanvas
         }
 
         g.setColor(0x666666);
-        int scY = Storage.top;
-        for (int i = 0; i < 41; i += 5)
+        for (int i = 0; i < 9; i++)
         {
             g.drawString(
-                curEntry.scaleY(scY),
+                Storage.scaleY[i],
                 0,
-                i*5+20 - SMALL_FONT.getHeight()/2,
+                i*25+20 - SMALL_FONT.getHeight()/2,
                 Graphics.LEFT|Graphics.TOP
             );
-            scY -= Storage.unit * 5;
+        }
+        for (int i = 0; i < 5; i++)
+        {
+            g.drawString(
+                Storage.scaleX[i],
+                i*50+20,
+                220,
+                Graphics.HCENTER|Graphics.TOP
+            );
+        }
+
+        if (viewTop == 0)
+        {
+
         }
 
         int top = Storage.top;
         int bottom = Storage.bottom;
 
         g.setColor(0x000000);
-        int last = Math.min(Storage.elements.length-1, 39);
-        int x = 215;
-        for (int i = last; i >= 0; i--)
+
+        if (viewTop == 0)
         {
-            Element e = Storage.elements[i];
-            int y = 200 * (e.y - bottom) / (top - bottom);
-            g.fillRect(
-                x - 1,
-                220 - y - 1,
-                3,
-                3
-            );
-            if (i < last)
+            int x = 215;
+            for (int i = rightEnd; i >= leftEnd; i--)
             {
-                g.drawLine(
-                    x,
-                    220 - y,
-                    x + Storage.intervals[i+1]*5,
-                    220 - 200 * (Storage.elements[i+1].y - bottom) / (top - bottom)
+                Element e = Storage.elements[i];
+                int y = 200 * (e.y - bottom) / (top - bottom);
+                g.fillRect(
+                    x - 1,
+                    220 - y - 1,
+                    3,
+                    3
                 );
+                if (i + 1 < Storage.elements.length)
+                {
+                    g.drawLine(
+                        x,
+                        220 - y,
+                        x + Storage.getInterval(i, i+1)*5,
+                        220 - 200 * (Storage.elements[i+1].y - bottom) / (top - bottom)
+                    );
+                }
+                if (x < 20)
+                {
+                    break;
+                }
+                if (i > 0)
+                {
+                    x -= Storage.getInterval(i-1, i)*5;
+                }
             }
-            if (x < 20)
-            {
-                break;
-            }
-            x -= Storage.intervals[i]*5;
         }
 
     }
@@ -534,7 +554,7 @@ final class AppMain extends GameCanvas
 
         renderButton(g, "NEW", sel == 0, 10);
 
-        if (view_top > 0)
+        if (viewTop > 0)
         {
             g.setColor(0xFFFFFF);
             g.fillTriangle(
@@ -547,7 +567,7 @@ final class AppMain extends GameCanvas
             );
         }
 
-        if (Storage.existsEntry(view_top+10))
+        if (Storage.existsEntry(viewTop+10))
         {
             g.setColor(0xFFFFFF);
             g.fillTriangle(
@@ -562,7 +582,7 @@ final class AppMain extends GameCanvas
 
         for (int i = 0; i < 10; i++)
         {
-            int vt = view_top + i;
+            int vt = viewTop + i;
             int y = 20+h + i*h;
             g.setColor(
                 sel-1 == vt
@@ -908,6 +928,15 @@ final class AppMain extends GameCanvas
                 }
                 Storage.calcIntervals(curEntry);
                 Storage.calcUnit();
+                Storage.calcScaleY(curEntry);
+                viewTop = 0;
+                rightEnd = Storage.elements.length - 1;
+                leftEnd = rightEnd;
+                while (leftEnd > 0 && Storage.getInterval(leftEnd, rightEnd) < 40)
+                {
+                    leftEnd--;
+                }
+                Storage.calcScaleX(curEntry, rightEnd, false);
                 appState = 4;
                 render();
                 break;
@@ -937,7 +966,7 @@ final class AppMain extends GameCanvas
                 curEntry = null;
                 appState = 0;
                 sel = 0;
-                view_top = 0;
+                viewTop = 0;
                 Storage.loadEntries();
                 render();
                 break;
@@ -1023,7 +1052,7 @@ final class AppMain extends GameCanvas
                 {
                     appState = 0;
                     sel = 0;
-                    view_top = 0;
+                    viewTop = 0;
                     curEntry = null;
                     Storage.loadEntries();
                     render();
@@ -1033,7 +1062,7 @@ final class AppMain extends GameCanvas
             case 3: // CANCEL
                 appState = 0;
                 sel = 0;
-                view_top = 0;
+                viewTop = 0;
                 render();
                 break;
             default:
@@ -1054,11 +1083,11 @@ final class AppMain extends GameCanvas
             if (!Storage.existsEntry(sel-1))
             {
                 sel = 0;
-                view_top = 0;
+                viewTop = 0;
             }
-            if (sel > view_top + 10)
+            if (sel > viewTop + 10)
             {
-                view_top = sel - 10;
+                viewTop = sel - 10;
             }
             render();
             break;
@@ -1069,16 +1098,16 @@ final class AppMain extends GameCanvas
                 if (Storage.existsEntry(0))
                 {
                     sel = Storage.entries.length;
-                    view_top = Math.max(0, sel - 10);
+                    viewTop = Math.max(0, sel - 10);
                 }
                 else
                 {
                     sel = 0;
                 }
             }
-            if (sel-1 < view_top)
+            if (sel-1 < viewTop)
             {
-                view_top = Math.max(0, sel - 1);
+                viewTop = Math.max(0, sel - 1);
             }
             render();
             break;

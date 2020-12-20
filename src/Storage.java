@@ -13,6 +13,10 @@ final class Storage
     static Element[] elements = null;
     static int[] intervals = null;
 
+    static final String[]
+        scaleX = new String[5],
+        scaleY = new String[9];
+
     static Element
         minElement = null,
         maxElement = null;
@@ -224,8 +228,14 @@ final class Storage
         }
         for (int i = 1; i < elements.length; i++)
         {
-            intervals[i] = e.interval(elements[i], elements[i-1]);
+            intervals[i] = intervals[i-1];
+            intervals[i] += e.interval(elements[i], elements[i-1]);
         }
+    }
+
+    static int getInterval(int left, int right)
+    {
+        return intervals[right] - intervals[left];
     }
 
     static void calcUnit()
@@ -385,5 +395,130 @@ final class Storage
         {
         }
         return null;
+    }
+
+    static void calcScaleY(Entry e)
+    {
+        int y = top;
+        for (int i = 0; i < 9; i++)
+        {
+            scaleY[i] = e.scaleY(y);
+            y -= unit * 5;
+        }
+    }
+
+    static void calcScaleX(Entry e, int p, boolean leftEnd)
+    {
+        int x = elements[p].x;
+        switch (e.xAxisType)
+        {
+        case Entry.POINT_0:
+        case Entry.POINT_1:
+        case Entry.POINT_2:
+        case Entry.POINT_3:
+        case Entry.POINT_4:
+        case Entry.POINT_5:
+        case Entry.POINT_6:
+        case Entry.POINT_7:
+        case Entry.POINT_8:
+        case Entry.COUNTER:
+            {
+                int s = x - (leftEnd ? 1 : 39);
+                for (int i = 0; i < 5; i++)
+                {
+                    scaleX[i] = Integer.toString(s);
+                    s += 10;
+                }
+            }
+            break;
+        case Entry.DATE_YMDHM:
+            {
+                int minute = (Element.getMinute(x)
+                                - (leftEnd ? 1 : 39)
+                                + 60
+                            ) % 60;
+                for (int i = 0; i < 5; i++)
+                {
+                    scaleX[i] = Integer.toString(minute);
+                    minute = (minute + 10) % 60;
+                }
+            }
+            break;
+        case Entry.DATE_YMDH:
+            {
+                int hour = (Element.getHour(x)
+                                - (leftEnd ? 1 : 39)
+                                + 48
+                            ) % 24;
+                for (int i = 0; i < 5; i++)
+                {
+                    scaleX[i] = Integer.toString(hour);
+                    hour = (hour + 10) % 24;
+                }
+            }
+            break;
+        case Entry.DATE_YMD:
+            {
+                int year = Element.getYear(x);
+                int month = Element.getMonth(x);
+                int day = Element.getDay(x) - (leftEnd ? 1 : 39);
+                while (day <= 0)
+                {
+                    month--;
+                    if (month == 0)
+                    {
+                        year--;
+                        month = 12;
+                    }
+                    day += Entry.getDaysOfMonth(year, month);
+                }
+                int mdays = Entry.getDaysOfMonth(year, month);
+                for (int i = 0; i < 5; i++)
+                {
+                    scaleX[i] = Integer.toString(day);
+                    day += 10;
+                    if (day > mdays)
+                    {
+                        day -= mdays;
+                        month++;
+                        if (month > 12)
+                        {
+                            year++;
+                            month = 1;
+                        }
+                        mdays = Entry.getDaysOfMonth(year, month);
+                    }
+                }
+            }
+            break;
+        case Entry.DATE_YM:
+            {
+                int month = ((Element.getMonth(x) - 1)
+                                - (leftEnd ? 1 : 39)
+                                + 60
+                            ) % 12;
+                for (int i = 0; i < 5; i++)
+                {
+                    scaleX[i] = Integer.toString(month + 1);
+                    month = (month + 10) % 12;
+                }
+            }
+            break;
+        case Entry.DATE_Y:
+            {
+                int year = Element.getYear(x)
+                         - (leftEnd ? 1 : 39);
+                for (int i = 0; i < 5; i++)
+                {
+                    scaleX[i] = Integer.toString(
+                        year % 100 + 100
+                    ).substring(1);
+                    year += 10;
+                }
+            }
+            break;
+        default:
+            break;
+        }
     }
 }
