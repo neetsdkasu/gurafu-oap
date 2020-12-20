@@ -28,6 +28,10 @@ final class AppMain extends GameCanvas
     private static Element
         curElement = null;
 
+    private static String
+        valueX = "",
+        valueY = "";
+
     AppMain()
     {
         super(false);
@@ -159,11 +163,6 @@ final class AppMain extends GameCanvas
             );
         }
 
-        if (viewTop == 0)
-        {
-
-        }
-
         int top = Storage.top;
         int bottom = Storage.bottom;
 
@@ -201,7 +200,86 @@ final class AppMain extends GameCanvas
                 }
             }
         }
+        else
+        {
+            int x = 25;
+            for (int i = leftEnd; i <= rightEnd; i++)
+            {
+                Element e = Storage.elements[i];
+                int y = 200 * (e.y - bottom) / (top - bottom);
+                g.fillRect(
+                    x - 1,
+                    220 - y - 1,
+                    3,
+                    3
+                );
+                if (i - 1 >= 0)
+                {
+                    g.drawLine(
+                        x,
+                        220 - y,
+                        x - Storage.getInterval(i-1, i)*5,
+                        220 - 200 * (Storage.elements[i-1].y - bottom) / (top - bottom)
+                    );
+                }
+                if (x > 220)
+                {
+                    break;
+                }
+                if (i+1 < Storage.elements.length)
+                {
+                    x += Storage.getInterval(i, i+1)*5;
+                }
+            }
+        }
 
+        if ((sel & 1) == 1)
+        {
+            if (viewTop == 0)
+            {
+                int xp = 215 - Storage.getInterval(sel >> 1, rightEnd)*5;
+                int yp = 220 - 200 * (curElement.y - bottom) / (top - bottom);
+                g.setColor(0xFF0000);
+                g.drawRect(xp - 3, yp - 3, 6, 6);
+            }
+            else
+            {
+                int xp = 25 + Storage.getInterval(leftEnd, sel >> 1)*5;
+                int yp = 220 - 200 * (curElement.y - bottom) / (top - bottom);
+                g.setColor(0xFF0000);
+                g.drawRect(xp - 3, yp - 3, 6, 6);
+            }
+        }
+
+        g.setColor(0x777777);
+        g.drawString(
+            "X-value",
+            5,
+            220 + SMALL_FONT.getHeight(),
+            Graphics.LEFT|Graphics.TOP
+        );
+        g.drawString(
+            "Y-value",
+            DISP_W - DISP_W/2 + 5,
+            220 + SMALL_FONT.getHeight(),
+            Graphics.LEFT|Graphics.TOP
+        );
+
+        g.setColor(0xFFFFFF);
+        g.drawString(
+            valueX,
+            DISP_W / 2 - 5,
+            220 + SMALL_FONT.getHeight(),
+            Graphics.RIGHT|Graphics.TOP
+        );
+        g.drawString(
+            valueY,
+            DISP_W - 5,
+            220 + SMALL_FONT.getHeight(),
+            Graphics.RIGHT|Graphics.TOP
+        );
+
+        renderButton(g, "BACK", (sel & 1) == 0, DISP_H - SMALL_FONT.getHeight() - 1);
     }
 
     void renderAppState_3(Graphics g)
@@ -627,10 +705,111 @@ final class AppMain extends GameCanvas
     {
         if (keyCode == KEY_CLR)
         {
-            appState = 2;
-            render();
+            keyCode = getKeyCode(FIRE);
+            sel = 0;
         }
-    }
+         switch (getGameAction(keyCode))
+        {
+        case UP:
+        case DOWN:
+            if (sel == 0)
+            {
+                sel = (rightEnd << 1) | 1;
+                curElement = Storage.elements[rightEnd];
+                valueX = curEntry.valueXString(curElement);
+                valueY = curEntry.valueYString(curElement);
+            }
+            else
+            {
+                sel = 0;
+            }
+            render();
+            break;
+        case LEFT:
+            if (sel != 0)
+            {
+                sel -= 2;
+                if (sel < 0)
+                {
+                    viewTop = 0;
+                    rightEnd = Storage.elements.length - 1;
+                    leftEnd = rightEnd;
+                    while (leftEnd > 0 && Storage.getInterval(leftEnd, rightEnd) < 40)
+                    {
+                        leftEnd--;
+                    }
+                    sel = (rightEnd << 1) | 1;
+                    Storage.calcScaleX(curEntry, rightEnd, false);
+                }
+                else if ((sel >> 1) <= leftEnd - viewTop)
+                {
+                    if (Storage.getInterval(0, Storage.elements.length - 1) >= 39)
+                    {
+                        viewTop = 1;
+                        leftEnd = sel >> 1;
+                        rightEnd = leftEnd;
+                        while (rightEnd+1 < Storage.elements.length && Storage.getInterval(leftEnd, rightEnd) < 40)
+                        {
+                            rightEnd++;
+                        }
+                        Storage.calcScaleX(curEntry, leftEnd, true);
+                    }
+                }
+                curElement = Storage.elements[sel >> 1];
+                valueX = curEntry.valueXString(curElement);
+                valueY = curEntry.valueYString(curElement);
+                render();
+            }
+            break;
+        case RIGHT:
+            if (sel != 0)
+            {
+                sel += 2;
+                if ((sel >> 1) >= Storage.elements.length)
+                {
+                    sel = 1;
+                    if (Storage.getInterval(0, Storage.elements.length - 1) >= 39)
+                    {
+                        viewTop = 1;
+                        leftEnd = 0;
+                        rightEnd = leftEnd;
+                        while (rightEnd+1 < Storage.elements.length && Storage.getInterval(leftEnd, rightEnd) < 40)
+                        {
+                            rightEnd++;
+                        }
+                        Storage.calcScaleX(curEntry, leftEnd, true);
+                    }
+                }
+                else if ((sel >> 1) > rightEnd - viewTop)
+                {
+                    viewTop = 0;
+                    rightEnd = sel >> 1;
+                    leftEnd = rightEnd;
+                    while (leftEnd > 0 && Storage.getInterval(leftEnd, rightEnd) < 40)
+                    {
+                        leftEnd--;
+                    }
+                    Storage.calcScaleX(curEntry, rightEnd, false);
+                }
+                curElement = Storage.elements[sel >> 1];
+                valueX = curEntry.valueXString(curElement);
+                valueY = curEntry.valueYString(curElement);
+                render();
+            }
+            break;
+        case FIRE:
+            if (sel == 0)
+            {
+                curElement = null;
+                valueX = "";
+                valueY = "";
+                appState = 2;
+                sel = 1;
+                render();
+            }
+            break;
+        }
+   }
 
     private void keyPressedAppState_3(int keyCode)
     {
@@ -921,7 +1100,8 @@ final class AppMain extends GameCanvas
                 break;
             case 1: // SHOW GRAPH
                 Storage.loadElements();
-                if (Storage.getLastElement() == null)
+                curElement = Storage.getLastElement();
+                if (curElement == null)
                 {
                     setTicker(new Ticker("no data"));
                     break;
@@ -937,6 +1117,9 @@ final class AppMain extends GameCanvas
                     leftEnd--;
                 }
                 Storage.calcScaleX(curEntry, rightEnd, false);
+                sel = (rightEnd << 1) | 1;
+                valueX = curEntry.valueXString(curElement);
+                valueY = curEntry.valueYString(curElement);
                 appState = 4;
                 render();
                 break;

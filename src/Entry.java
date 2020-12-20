@@ -90,19 +90,20 @@ final class Entry
         return scale(yAxisType, v);
     }
 
+    static final int[] SCALE = new int[]{
+        1,
+        10,
+        100,
+        1000,
+        10000,
+        100000,
+        1000000,
+        10000000,
+        100000000
+    };
+
     static String scale(int type, int v)
     {
-        final int[] SCALE = new int[]{
-            1,
-            10,
-            100,
-            1000,
-            10000,
-            100000,
-            1000000,
-            10000000,
-            100000000
-        };
         switch (type)
         {
         case Entry.POINT_0:
@@ -114,8 +115,10 @@ final class Entry
         case Entry.POINT_6:
         case Entry.POINT_7:
         case Entry.POINT_8:
+            String sf = v < 0 ? "-" : "";
+            v = Math.abs(v);
             int s = SCALE[type];
-            String st = Integer.toString(v / s)
+            String st = sf + Integer.toString(v / s)
                 + "."
                 + Integer.toString(v % s + s).substring(1);
             for (int i = st.length() - 1; i >= 0; i--)
@@ -289,4 +292,58 @@ final class Entry
         }
     }
 
+    String valueXString(Element e)
+    {
+        return valueString(xAxisType, e.x);
+    }
+
+    String valueYString(Element e)
+    {
+        return valueString(yAxisType, e.y);
+    }
+
+    static String valueString(int type, int v)
+    {
+        String st = "";
+        switch (type)
+        {
+        case Entry.POINT_0:
+        case Entry.POINT_1:
+        case Entry.POINT_2:
+        case Entry.POINT_3:
+        case Entry.POINT_4:
+        case Entry.POINT_5:
+        case Entry.POINT_6:
+        case Entry.POINT_7:
+        case Entry.POINT_8:
+            String sf = v < 0 ? "-" : "+";
+            v = Math.abs(v);
+            int s = SCALE[type];
+            return sf + Integer.toString(v / s)
+                + "."
+                + Integer.toString(v % s + s).substring(1);
+        case Entry.COUNTER:
+            return Integer.toString(v);
+        case Entry.DATE_YMDHM:
+            st = ":" + Integer.toString(
+                Element.getMinute(v) % 100 + 100
+            ).substring(1);
+        case Entry.DATE_YMDH:
+            st = " " + Integer.toString(
+                Element.getHour(v) % 100 + 100
+            ).substring(1) + st;
+        case Entry.DATE_YMD:
+            st = "-" + Integer.toString(
+                Element.getDay(v) % 100 + 100
+            ).substring(1) + st;
+        case Entry.DATE_YM:
+            st = "-" + Integer.toString(
+                Element.getMonth(v) % 100 + 100
+            ).substring(1) + st;
+        case Entry.DATE_Y:
+            return Integer.toString(Element.getYear(v)) + st;
+        default:
+            return "";
+        }
+    }
 }
