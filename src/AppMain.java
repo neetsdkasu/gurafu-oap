@@ -391,6 +391,8 @@ final class AppMain extends GameCanvas
                 14,
                 SMALL_FONT.getHeight()
             );
+            g.setColor(0x002222);
+            g.drawRect(20, 50, DISP_W-40, 50);
         }
 
         if (sel == 0)
@@ -423,6 +425,8 @@ final class AppMain extends GameCanvas
                 14,
                 SMALL_FONT.getHeight()
             );
+            g.setColor(0x002222);
+            g.drawRect(20, 110, DISP_W-40, 50);
         }
 
         if (sel == 1)
@@ -934,13 +938,33 @@ final class AppMain extends GameCanvas
 
     private void keyPressedAppState_3(int keyCode)
     {
-        if (keyCode == KEY_CLR)
+        switch (keyCode)
         {
+        case KEY_NUM0:
+        case KEY_NUM1:
+        case KEY_NUM2:
+        case KEY_NUM3:
+        case KEY_NUM4:
+        case KEY_NUM5:
+        case KEY_NUM6:
+        case KEY_NUM7:
+        case KEY_NUM8:
+        case KEY_NUM9:
+            if (sel >= 16)
+            {
+                setValueDigit(keyCode - KEY_NUM0);
+                keyCode = getKeyCode(RIGHT);
+            }
+            break;
+        case KEY_CLR:
             keyCode = getKeyCode(FIRE);
             if (sel < 16)
             {
                 sel = 3;
             }
+            break;
+        default:
+            break;
         }
         switch (getGameAction(keyCode))
         {
@@ -1017,20 +1041,137 @@ final class AppMain extends GameCanvas
         }
     }
 
+    private void setValueDigit(int digit)
+    {
+        int type = sel >= 32
+                 ? curEntry.yAxisType
+                 : curEntry.xAxisType;
+        int value = sel >= 32
+                 ? curElement.y
+                 : curElement.x;
+        int pos = sel & 15;
+        switch (type)
+        {
+        case Entry.POINT_0:
+        case Entry.POINT_1:
+        case Entry.POINT_2:
+        case Entry.POINT_3:
+        case Entry.POINT_4:
+        case Entry.POINT_5:
+        case Entry.POINT_6:
+        case Entry.POINT_7:
+        case Entry.POINT_8:
+            if (pos == 8)
+            {
+                return;
+            }
+        case Entry.COUNTER:
+            value = setDigit(value, pos, digit);
+            break;
+        case Entry.DATE_YMDHM:
+            if (pos < 2)
+            {
+                value = Element.setMinute(
+                    value,
+                    Math.min(59, setDigit(
+                        Element.getMinute(value),
+                        pos,
+                        digit
+                    ))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_YMDH:
+            if (pos < 2)
+            {
+                value = Element.setHour(
+                    value,
+                    Math.min(23, setDigit(
+                        Element.getHour(value),
+                        pos,
+                        digit
+                    ))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_YMD:
+            if (pos < 2)
+            {
+                value = Element.setDay(
+                    value,
+                    Math.max(1, Math.min(31, setDigit(
+                            Element.getDay(value),
+                            pos,
+                            digit
+                    )))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_YM:
+            if (pos < 2)
+            {
+                value = Element.setMonth(
+                    value,
+                    Math.max(1, Math.min(12, setDigit(
+                        Element.getMonth(value),
+                        pos,
+                        digit
+                    )))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_Y:
+            int y = setDigit(
+                Element.getYear(value) % 100,
+                pos,
+                digit
+            );
+            value = Element.setYear(
+                value,
+                y < 45 ? (2000+y) : (1900+y)
+            );
+            break;
+        default:
+            break;
+        }
+        if (sel >= 32)
+        {
+            curElement.y = value;
+        }
+        else
+        {
+            curElement.x = value;
+        }
+    }
+
+    static final int[] DIG = new int[]{
+        1,
+        10,
+        100,
+        1000,
+        10000,
+        100000,
+        1000000,
+        10000000,
+        100000000,
+        1000000000
+    };
+
+    private int setDigit(int value, int pos, int digit)
+    {
+        boolean s = value < 0;
+        value = Math.abs(value);
+        int d = (value / DIG[pos]) % 10;
+        value += (digit - d) * DIG[pos];
+        return s ? -value : value;
+    }
+
     private int changeDigit(int value, int pos, int changes, int ub)
     {
-        final int[] DIG = new int[]{
-            1,
-            10,
-            100,
-            1000,
-            10000,
-            100000,
-            1000000,
-            10000000,
-            100000000,
-            1000000000
-        };
         boolean s = value < 0;
         value = Math.abs(value);
         int d = (value / DIG[pos]) % 10;
