@@ -26,6 +26,9 @@ final class Storage
         top = 1,
         bottom = 0;
 
+    static long[]
+        averageY = null;
+
     static void init()
     {
         try
@@ -233,6 +236,11 @@ final class Storage
         }
     }
 
+    static int positionY(int y)
+    {
+        return 220 - (int)(200L * (long)(y - bottom) / (long)(top - bottom));
+    }
+
     static int getInterval(int left, int right)
     {
         return intervals[right] - intervals[left];
@@ -285,6 +293,16 @@ final class Storage
         // System.out.println("maxR" + maxR);
     }
 
+    static int getAverageY()
+    {
+        return getAverageY(0, elements.length - 1);
+    }
+
+    static int getAverageY(int left, int right)
+    {
+        return (int)((averageY[right + 1] - averageY[left]) / (long)(right - left + 1));
+    }
+
     static void loadElements()
     {
         RecordEnumeration re = null;
@@ -295,6 +313,7 @@ final class Storage
             if (elements == null || elements.length != n)
             {
                 elements = new Element[n];
+                averageY = new long[n+1];
             }
 
             minElement = null;
@@ -324,6 +343,7 @@ final class Storage
                 {
                     maxElement = e;
                 }
+                averageY[i] = averageY[i-1] + (long)e.y;
             }
         }
         catch (Exception ex)

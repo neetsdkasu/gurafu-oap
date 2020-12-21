@@ -20,7 +20,9 @@ final class AppMain extends GameCanvas
         sel = 0,
         viewTop = 0,
         leftEnd = 0,
-        rightEnd = 0;
+        rightEnd = 0,
+        avgAllY = 0,
+        avgViewY = 0;
 
     private static Entry
         curEntry = null;
@@ -30,7 +32,14 @@ final class AppMain extends GameCanvas
 
     private static String
         valueX = "",
-        valueY = "";
+        valueY = "",
+        valueMaxY = "",
+        valueMinY = "",
+        valueAvgAllY = "",
+        valueAvgViewY = "";
+
+    private static boolean
+        narrowView = false;
 
     AppMain()
     {
@@ -143,6 +152,65 @@ final class AppMain extends GameCanvas
             g.drawLine(i*5+20, 20, i*5+20, 220);
         }
 
+        g.setColor(0x0000FF);
+        g.drawLine(
+            20,
+            Storage.positionY(Storage.maxElement.y),
+            220,
+            Storage.positionY(Storage.maxElement.y)
+        );
+        g.setColor(0x7777FF);
+        g.drawString(
+            valueMaxY,
+            DISP_W,
+            Storage.positionY(Storage.maxElement.y) - SMALL_FONT.getHeight()/2,
+            Graphics.RIGHT|Graphics.TOP
+        );
+        g.setColor(0x0000FF);
+        g.drawLine(
+            20,
+            Storage.positionY(Storage.minElement.y),
+            220,
+            Storage.positionY(Storage.minElement.y)
+        );
+        g.setColor(0x7777FF);
+        g.drawString(
+            valueMinY,
+            DISP_W,
+            Storage.positionY(Storage.minElement.y) - SMALL_FONT.getHeight()/2,
+            Graphics.RIGHT|Graphics.TOP
+        );
+
+        g.setColor(0x007700);
+        g.drawLine(
+            20,
+            Storage.positionY(avgViewY),
+            220,
+            Storage.positionY(avgViewY)
+        );
+        g.setColor(0x00FF00);
+        g.drawString(
+            valueAvgViewY,
+            DISP_W,
+            Storage.positionY(avgViewY) - SMALL_FONT.getHeight()/2,
+            Graphics.RIGHT|Graphics.TOP
+        );
+
+        g.setColor(0x770077);
+        g.drawLine(
+            20,
+            Storage.positionY(avgAllY),
+            220,
+            Storage.positionY(avgAllY)
+        );
+        g.setColor(0xFF00FF);
+        g.drawString(
+            valueAvgAllY,
+            DISP_W,
+            Storage.positionY(avgAllY) - SMALL_FONT.getHeight()/2,
+            Graphics.RIGHT|Graphics.TOP
+        );
+
         g.setColor(0x666666);
         for (int i = 0; i < 9; i++)
         {
@@ -174,10 +242,10 @@ final class AppMain extends GameCanvas
             for (int i = rightEnd; i >= leftEnd; i--)
             {
                 Element e = Storage.elements[i];
-                int y = 200 * (e.y - bottom) / (top - bottom);
+                int y = Storage.positionY(e.y);
                 g.fillRect(
                     x - 1,
-                    220 - y - 1,
+                    y - 1,
                     3,
                     3
                 );
@@ -185,9 +253,9 @@ final class AppMain extends GameCanvas
                 {
                     g.drawLine(
                         x,
-                        220 - y,
+                        y,
                         x + Storage.getInterval(i, i+1)*5,
-                        220 - 200 * (Storage.elements[i+1].y - bottom) / (top - bottom)
+                        Storage.positionY(Storage.elements[i+1].y)
                     );
                 }
                 if (x < 20)
@@ -206,20 +274,20 @@ final class AppMain extends GameCanvas
             for (int i = leftEnd; i <= rightEnd; i++)
             {
                 Element e = Storage.elements[i];
-                int y = 200 * (e.y - bottom) / (top - bottom);
+                int y = Storage.positionY(e.y);
                 g.fillRect(
                     x - 1,
-                    220 - y - 1,
+                    y - 1,
                     3,
                     3
                 );
-                if (i - 1 >= 0)
+                if (i > 0)
                 {
                     g.drawLine(
                         x,
-                        220 - y,
+                        y,
                         x - Storage.getInterval(i-1, i)*5,
-                        220 - 200 * (Storage.elements[i-1].y - bottom) / (top - bottom)
+                        Storage.positionY(Storage.elements[i-1].y)
                     );
                 }
                 if (x > 220)
@@ -238,14 +306,14 @@ final class AppMain extends GameCanvas
             if (viewTop == 0)
             {
                 int xp = 215 - Storage.getInterval(sel >> 1, rightEnd)*5;
-                int yp = 220 - 200 * (curElement.y - bottom) / (top - bottom);
+                int yp = Storage.positionY(curElement.y);
                 g.setColor(0xFF0000);
                 g.drawRect(xp - 3, yp - 3, 6, 6);
             }
             else
             {
                 int xp = 25 + Storage.getInterval(leftEnd, sel >> 1)*5;
-                int yp = 220 - 200 * (curElement.y - bottom) / (top - bottom);
+                int yp = Storage.positionY(curElement.y);
                 g.setColor(0xFF0000);
                 g.drawRect(xp - 3, yp - 3, 6, 6);
             }
@@ -703,7 +771,7 @@ final class AppMain extends GameCanvas
 
     private static void setRightView(int newRightEnd, boolean force)
     {
-        if (force || Storage.getInterval(0, Storage.elements.length - 1) >= 39)
+        if (force || !narrowView)
         {
             viewTop = 0;
             rightEnd = newRightEnd;
@@ -713,13 +781,18 @@ final class AppMain extends GameCanvas
                 leftEnd--;
             }
             Storage.calcScaleX(curEntry, rightEnd, false);
-            sel = (rightEnd << 1) | 1;
+            avgViewY = Storage.getAverageY(
+                leftEnd + (narrowView ? 0 : 1),
+                rightEnd
+            );
+            valueAvgViewY = Entry.valueString(curEntry.yAxisType, avgViewY);
         }
+        sel = (newRightEnd << 1) | 1;
     }
 
     private static void setLeftView(int newLeftEnd, boolean force)
     {
-        if (force || Storage.getInterval(0, Storage.elements.length - 1) >= 39)
+        if (force || !narrowView)
         {
             viewTop = 1;
             leftEnd = newLeftEnd;
@@ -729,18 +802,63 @@ final class AppMain extends GameCanvas
                 rightEnd++;
             }
             Storage.calcScaleX(curEntry, leftEnd, true);
-            sel = (leftEnd << 1) | 1;
+            avgViewY = Storage.getAverageY(
+                leftEnd,
+                rightEnd - (narrowView ? 0 : 1)
+            );
+            valueAvgViewY = Entry.valueString(curEntry.yAxisType, avgViewY);
         }
+        sel = (newLeftEnd << 1) | 1;
     }
 
     private void keyPressedAppState_4(int keyCode)
     {
-        if (keyCode == KEY_CLR)
+        switch (keyCode)
         {
+        case KEY_NUM1:
+            if (sel != 0)
+            {
+                if (Storage.getInterval(0, leftEnd) < 39)
+                {
+                    setLeftView(0, false);
+                }
+                else
+                {
+                    setRightView(leftEnd, false);
+                }
+                curElement = Storage.elements[sel >> 1];
+                valueX = curEntry.valueXString(curElement);
+                valueY = curEntry.valueYString(curElement);
+                render();
+                return;
+            }
+            break;
+        case KEY_NUM3:
+            if (sel != 0)
+            {
+                if (Storage.getInterval(rightEnd, Storage.elements.length-1) < 39)
+                {
+                    setRightView(Storage.elements.length - 1, false);
+                }
+                else
+                {
+                    setLeftView(rightEnd, false);
+                }
+                curElement = Storage.elements[sel >> 1];
+                valueX = curEntry.valueXString(curElement);
+                valueY = curEntry.valueYString(curElement);
+                render();
+                return;
+            }
+            break;
+        case KEY_CLR:
             keyCode = getKeyCode(FIRE);
             sel = 0;
+            break;
+        default:
+            break;
         }
-         switch (getGameAction(keyCode))
+        switch (getGameAction(keyCode))
         {
         case UP:
         case DOWN:
@@ -1103,8 +1221,7 @@ final class AppMain extends GameCanvas
                 break;
             case 1: // SHOW GRAPH
                 Storage.loadElements();
-                curElement = Storage.getLastElement();
-                if (curElement == null)
+                if (Storage.getLastElement() == null)
                 {
                     setTicker(new Ticker("no data"));
                     break;
@@ -1112,9 +1229,22 @@ final class AppMain extends GameCanvas
                 Storage.calcIntervals(curEntry);
                 Storage.calcUnit();
                 Storage.calcScaleY(curEntry);
-                setRightView(Storage.elements.length - 1, true);
+                narrowView = Storage.getInterval(0, Storage.elements.length - 1) < 39;
+                if (narrowView)
+                {
+                    setLeftView(0, true);
+                }
+                else
+                {
+                    setRightView(Storage.elements.length - 1, true);
+                }
+                curElement = Storage.elements[sel >> 1];
                 valueX = curEntry.valueXString(curElement);
                 valueY = curEntry.valueYString(curElement);
+                valueMaxY = curEntry.valueYString(Storage.maxElement);
+                valueMinY = curEntry.valueYString(Storage.minElement);
+                avgAllY = Storage.getAverageY();
+                valueAvgAllY = Entry.valueString(curEntry.yAxisType, avgAllY);
                 appState = 4;
                 render();
                 break;
