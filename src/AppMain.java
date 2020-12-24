@@ -38,6 +38,9 @@ final class AppMain extends GameCanvas
         valueAvgAllY = "",
         valueAvgViewY = "";
 
+    private static String[][]
+        values = null;
+
     private static boolean
         narrowView = false;
 
@@ -88,6 +91,9 @@ final class AppMain extends GameCanvas
         case 4:
             keyPressedAppState_4(keyCode);
             break;
+        case 5:
+            keyPressedAppState_5(keyCode);
+            break;
         default:
             break;
         }
@@ -119,11 +125,116 @@ final class AppMain extends GameCanvas
         case 4:
             renderAppState_4(g);
             break;
+        case 5:
+            renderAppState_5(g);
+            break;
         default:
             break;
         }
 
         flushGraphics();
+    }
+
+    void renderAppState_5(Graphics g)
+    {
+        g.setColor(0xFFFFFF);
+
+        g.drawString(
+            curEntry.title,
+            20,
+            0,
+            Graphics.LEFT|Graphics.TOP
+        );
+
+        final int h = SMALL_FONT.getHeight();
+
+        if (viewTop < Storage.elements.length-1)
+        {
+            g.setColor(0xFFFFFF);
+            g.fillTriangle(
+                DISP_W-5,
+                2*h,
+                DISP_W,
+                2*h+h,
+                DISP_W-10,
+                2*h+h
+            );
+        }
+
+        if (viewTop-values.length >= 0)
+        {
+            g.setColor(0xFFFFFF);
+            g.fillTriangle(
+                DISP_W-5,
+                (values.length+2)*h,
+                DISP_W-10,
+                (values.length+2)*h-h,
+                DISP_W,
+                (values.length+2)*h-h
+            );
+        }
+
+        {
+            int v = Math.max(0, Storage.elements.length - viewTop - 1);
+            int r = Math.max(1, Storage.elements.length - values.length);
+            int hh = (values.length - 2) * h;
+            int y = (int)((long)hh * (long)v / (long)r);
+            g.setColor(0xFFFFFF);
+            g.drawLine(DISP_W-10, y+3*h, DISP_W, y+3*h);
+        }
+
+        g.setColor(0xFFFFFF);
+        g.drawString(
+            "X-axis",
+            15,
+            2*h,
+            Graphics.LEFT|Graphics.BOTTOM
+        );
+        g.drawString(
+            "Y-axis",
+            DISP_W/2+5,
+            2*h,
+            Graphics.LEFT|Graphics.BOTTOM
+        );
+
+        int len = Math.min(values.length, Storage.elements.length);
+
+        for (int i = 0; i < len; i++)
+        {
+            g.setColor((viewTop - i == sel) ? 0xFFFF00 : 0xFFFFFF);
+            g.fillRect(10, (i+2)*h, DISP_W - 20, h);
+            g.setColor(0x777777);
+            g.drawRect(10, (i+2)*h, DISP_W - 20, h);
+            g.setColor(0x000000);
+            g.drawString(
+                values[i][0],
+                DISP_W/2-5,
+                (i+3)*h,
+                Graphics.RIGHT|Graphics.BOTTOM
+            );
+            g.drawString(
+                values[i][1],
+                DISP_W - 15,
+                (i+3)*h,
+                Graphics.RIGHT|Graphics.BOTTOM
+            );
+        }
+        g.setColor(0x000000);
+        g.drawLine(DISP_W/2, 2*h, DISP_W/2, (len+2)*h);
+
+        if (sel < Storage.elements.length)
+        {
+            g.setColor(0xFF0000);
+            g.drawRect(10, (viewTop-sel+2)*h, DISP_W - 20, h);
+        }
+
+        renderButton(
+            g,
+            "BACK",
+            sel == Storage.elements.length,
+            13*h
+        );
+
     }
 
     void renderAppState_4(Graphics g)
@@ -815,6 +926,84 @@ final class AppMain extends GameCanvas
         sel = (newLeftEnd << 1) | 1;
     }
 
+    private void keyPressedAppState_5(int keyCode)
+    {
+        if (keyCode == KEY_CLR)
+        {
+            sel = Storage.elements.length;
+            keyCode = getKeyCode(FIRE);
+        }
+        switch (getGameAction(keyCode))
+        {
+        case DOWN:
+            sel--;
+            if (sel < 0)
+            {
+                sel = Storage.elements.length;
+                viewTop = sel-1;
+                for (int i = 0; viewTop-i >= 0 && i < values.length; i++)
+                {
+                    Element e = Storage.elements[viewTop-i];
+                    values[i][0] = curEntry.valueXString(e);
+                    values[i][1] = curEntry.valueYString(e);
+                }
+            }
+            else if (sel <= viewTop-values.length)
+            {
+                viewTop = sel + values.length - 1;
+                for (int i = 0; i+1< values.length; i++)
+                {
+                    values[i][0] = values[i+1][0];
+                    values[i][1] = values[i+1][1];
+                }
+                values[values.length-1][0] =
+                    curEntry.valueXString(Storage.elements[sel]);
+                values[values.length-1][1] =
+                    curEntry.valueYString(Storage.elements[sel]);
+            }
+            render();
+            break;
+        case UP:
+            sel++;
+            if (sel > Storage.elements.length)
+            {
+                sel = 0;
+                int len = Math.min(values.length, Storage.elements.length);
+                viewTop = len-1;
+                for (int i = 0; i < len; i++)
+                {
+                    Element e = Storage.elements[viewTop-i];
+                    values[i][0] = curEntry.valueXString(e);
+                    values[i][1] = curEntry.valueYString(e);
+                }
+            }
+            else if (sel > viewTop && sel < Storage.elements.length)
+            {
+                viewTop = sel;
+                for (int i = values.length-1; i > 0; i--)
+                {
+                    values[i][0] = values[i-1][0];
+                    values[i][1] = values[i-1][1];
+                }
+                values[0][0] = curEntry.valueXString(Storage.elements[sel]);
+                values[0][1] = curEntry.valueYString(Storage.elements[sel]);
+            }
+            render();
+            break;
+        case FIRE:
+            if (sel == Storage.elements.length)
+            {
+                appState = 2;
+                sel = 0;
+                viewTop = 0;
+                render();
+            }
+            break;
+        default:
+            break;
+        }
+    }
+
     private void keyPressedAppState_4(int keyCode)
     {
         switch (keyCode)
@@ -1397,6 +1586,20 @@ final class AppMain extends GameCanvas
                     break;
                 }
                 // TODO
+                viewTop = Storage.elements.length - 1;
+                sel = viewTop;
+                if (values == null)
+                {
+                    values = new String[10][2];
+                }
+                for (int i = 0; sel-i >= 0 && i < values.length; i++)
+                {
+                    Element e = Storage.elements[sel-i];
+                    values[i][0] = curEntry.valueXString(e);
+                    values[i][1] = curEntry.valueYString(e);
+                }
+                appState = 5;
+                render();
                 break;
             case 3: // EXPORT
                 Storage.loadElements();
