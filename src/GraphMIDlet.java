@@ -14,7 +14,8 @@ public final class GraphMIDlet extends MIDlet implements CommandListener
         appMain = null;
 
     private static TextBox
-        titleTextBox = null;
+        titleTextBox = null,
+        exportTextBox = null;
 
     private static Command
         exitCommand = null;
@@ -48,6 +49,21 @@ public final class GraphMIDlet extends MIDlet implements CommandListener
             titleTextBox.setString("");
         }
         Display.getDisplay(midlet).setCurrent(titleTextBox);
+    }
+
+    static void showExportTextBox(String text)
+    {
+        if (exportTextBox == null)
+        {
+            exportTextBox = new TextBox("export", text, 5000, TextField.ANY);
+            exportTextBox.addCommand(new Command("CLOSE", Command.BACK, 1));
+            exportTextBox.setCommandListener(midlet);
+        }
+        else
+        {
+            exportTextBox.setString(text);
+        }
+        Display.getDisplay(midlet).setCurrent(exportTextBox);
     }
 
     private static void release()
@@ -92,6 +108,11 @@ public final class GraphMIDlet extends MIDlet implements CommandListener
                 appMain.setNewTitle(title);
             }
             titleTextBox.setTicker(null);
+            Display.getDisplay(this).setCurrent(appMain);
+        }
+        else if (disp == exportTextBox)
+        {
+            exportTextBox.setString("");
             Display.getDisplay(this).setCurrent(appMain);
         }
     }

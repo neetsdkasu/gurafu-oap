@@ -60,6 +60,20 @@ final class AppMain extends GameCanvas
         render();
     }
 
+    private void export()
+    {
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < Storage.elements.length; i++)
+        {
+            Element e = Storage.elements[i];
+            sb.append(curEntry.valueXString(e))
+                .append(',')
+                .append(curEntry.valueYString(e))
+                .append('\n');
+        }
+        GraphMIDlet.showExportTextBox(sb.toString());
+    }
+
     protected void keyRepeated(int keyCode)
     {
         if (getGameAction(keyCode) != FIRE)
@@ -1804,6 +1818,7 @@ final class AppMain extends GameCanvas
                     break;
                 }
                 // TODO
+                export();
                 break;
             case 4: // DELETE
                 // TODO
