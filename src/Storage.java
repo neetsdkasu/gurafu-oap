@@ -303,6 +303,18 @@ final class Storage
         return (int)((averageY[right + 1] - averageY[left]) / (long)(right - left + 1));
     }
 
+    static void deleteElement(int id)
+    {
+        try
+        {
+            dataRS.deleteRecord(id);
+        }
+        catch (Exception ex)
+        {
+            throw new RuntimeException(ex.toString());
+        }
+    }
+
     static void loadElements()
     {
         RecordEnumeration re = null;

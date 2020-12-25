@@ -94,6 +94,12 @@ final class AppMain extends GameCanvas
         case 5:
             keyPressedAppState_5(keyCode);
             break;
+        case 6:
+            keyPressedAppState_3(keyCode);
+            break;
+        case 7:
+            keyPressedAppState_7(keyCode);
+            break;
         default:
             break;
         }
@@ -128,11 +134,66 @@ final class AppMain extends GameCanvas
         case 5:
             renderAppState_5(g);
             break;
+        case 6:
+            renderAppState_3(g);
+            break;
+        case 7:
+            renderAppState_7(g);
+            break;
         default:
             break;
         }
 
         flushGraphics();
+    }
+
+    void renderAppState_7(Graphics g)
+    {
+        g.setColor(0xFFFFFF);
+
+        g.drawString(
+            curEntry.title,
+            20,
+            0,
+            Graphics.LEFT|Graphics.TOP
+        );
+
+        final int h = SMALL_FONT.getHeight();
+
+        g.drawString(
+            "X-axis",
+            15,
+            2*h,
+            Graphics.LEFT|Graphics.BOTTOM
+        );
+        g.drawString(
+            "Y-axis",
+            DISP_W/2+5,
+            2*h,
+            Graphics.LEFT|Graphics.BOTTOM
+        );
+
+        g.setColor(0xFFFFFF);
+        g.fillRect(10, 2*h, DISP_W - 20, h);
+        g.setColor(0x777777);
+        g.drawRect(10, 2*h, DISP_W - 20, h);
+        g.setColor(0x000000);
+        g.drawString(
+            valueX,
+            DISP_W/2-5,
+            3*h,
+            Graphics.RIGHT|Graphics.BOTTOM
+        );
+        g.drawString(
+            valueY,
+            DISP_W - 15,
+            3*h,
+            Graphics.RIGHT|Graphics.BOTTOM
+        );
+        g.drawLine(DISP_W/2, 2*h, DISP_W/2, 3*h);
+
+        renderButton(g, "DELETE", sel == 0, 5*h);
+        renderButton(g, "CANCEL", sel == 1, 7*h);
     }
 
     void renderAppState_5(Graphics g)
@@ -473,7 +534,7 @@ final class AppMain extends GameCanvas
         );
 
         g.drawString(
-            "ADD DATA",
+            appState == 3 ? "ADD DATA" : "MODIFY DATA",
             20,
             30,
             Graphics.LEFT|Graphics.TOP
@@ -548,6 +609,10 @@ final class AppMain extends GameCanvas
 
         renderButton(g, "OK", sel == 2, 180);
         renderButton(g, "CANCEL", sel == 3, 200);
+        if (appState == 6)
+        {
+            renderButton(g, "DELETE", sel == 4, 230);
+        }
 
     }
 
@@ -926,6 +991,66 @@ final class AppMain extends GameCanvas
         sel = (newLeftEnd << 1) | 1;
     }
 
+    private void keyPressedAppState_7(int keyCode)
+    {
+        if (keyCode == KEY_CLR)
+        {
+            sel = 1;
+            keyCode = getKeyCode(FIRE);
+        }
+        switch (getGameAction(keyCode))
+        {
+        case UP:
+        case DOWN:
+            sel = 1 - sel;
+            render();
+            break;
+        case FIRE:
+            switch (sel)
+            {
+            case 0:
+                Storage.deleteElement(curElement.id);
+                curElement = null;
+                Storage.loadElements();
+                if (Storage.getLastElement() == null)
+                {
+                    sel = 0;
+                    viewTop = 0;
+                    appState = 2;
+                }
+                else
+                {
+                    viewTop = Math.min(viewTop, Storage.elements.length-1);
+                    for (int i = 0; viewTop-i >= 0 && i < values.length; i++)
+                    {
+                        Element e = Storage.elements[viewTop-i];
+                        values[i][0] = curEntry.valueXString(e);
+                        values[i][1] = curEntry.valueYString(e);
+                    }
+                    sel = viewTop;
+                    appState = 5;
+                }
+                render();
+                setTicker(new Ticker("deleted"));
+                valueX = "";
+                valueY = "";
+                break;
+            case 1:
+                sel = 0;
+                appState = 6;
+                render();
+                valueX = "";
+                valueY = "";
+                break;
+            default:
+                break;
+            }
+            break;
+        default:
+            break;
+        }
+    }
+
     private void keyPressedAppState_5(int keyCode)
     {
         if (keyCode == KEY_CLR)
@@ -935,6 +1060,17 @@ final class AppMain extends GameCanvas
         }
         switch (getGameAction(keyCode))
         {
+        case RIGHT:
+            sel = Math.max(0, sel - (values.length - 1));
+            viewTop = Math.min(sel + (values.length - 1), Storage.elements.length-1);
+            for (int i = 0; viewTop-i >= 0 && i < values.length; i++)
+            {
+                Element e = Storage.elements[viewTop-i];
+                values[i][0] = curEntry.valueXString(e);
+                values[i][1] = curEntry.valueYString(e);
+            }
+            render();
+            break;
         case DOWN:
             sel--;
             if (sel < 0)
@@ -960,6 +1096,17 @@ final class AppMain extends GameCanvas
                     curEntry.valueXString(Storage.elements[sel]);
                 values[values.length-1][1] =
                     curEntry.valueYString(Storage.elements[sel]);
+            }
+            render();
+            break;
+        case LEFT:
+            sel = Math.min(Storage.elements.length-1, sel + (values.length - 1));
+            viewTop = Math.max(viewTop, sel);
+            for (int i = 0; viewTop-i >= 0 && i < values.length; i++)
+            {
+                Element e = Storage.elements[viewTop-i];
+                values[i][0] = curEntry.valueXString(e);
+                values[i][1] = curEntry.valueYString(e);
             }
             render();
             break;
@@ -996,6 +1143,13 @@ final class AppMain extends GameCanvas
                 appState = 2;
                 sel = 0;
                 viewTop = 0;
+                render();
+            }
+            else
+            {
+                appState = 6;
+                curElement = Storage.elements[sel];
+                sel = 0;
                 render();
             }
             break;
@@ -1160,7 +1314,14 @@ final class AppMain extends GameCanvas
         case DOWN:
             if (sel < 16)
             {
-                sel = (sel + 1) % 4;
+                if (appState == 3)
+                {
+                    sel = (sel + 1) % 4;
+                }
+                else
+                {
+                    sel = (sel + 1) % 5;
+                }
             }
             else
             {
@@ -1171,7 +1332,14 @@ final class AppMain extends GameCanvas
         case UP:
             if (sel < 16)
             {
-                sel = (sel + 3) % 4;
+                if (appState == 3)
+                {
+                    sel = (sel + 3) % 4;
+                }
+                else
+                {
+                    sel = (sel + 4) % 5;
+                }
             }
             else
             {
@@ -1212,9 +1380,36 @@ final class AppMain extends GameCanvas
                 }
                 setTicker(new Ticker("saved"));
             case 3: // CANCEL
-                curElement = null;
-                appState = 2;
-                sel = 0;
+                if (appState == 3)
+                {
+                    curElement = null;
+                    appState = 2;
+                    sel = 0;
+                    render();
+                }
+                else if (appState == 6)
+                {
+                    curElement = null;
+                    if (sel == 2)
+                    {
+                        Storage.loadElements();
+                        for (int i = 0; viewTop-i >= 0 && i < values.length; i++)
+                        {
+                            Element e = Storage.elements[viewTop-i];
+                            values[i][0] = curEntry.valueXString(e);
+                            values[i][1] = curEntry.valueYString(e);
+                        }
+                    }
+                    sel = viewTop;
+                    appState = 5;
+                    render();
+                }
+                break;
+            case 4: // DELETE
+                valueX = curEntry.valueXString(curElement);
+                valueY = curEntry.valueYString(curElement);
+                appState = 7;
+                sel = 1;
                 render();
                 break;
             default:
