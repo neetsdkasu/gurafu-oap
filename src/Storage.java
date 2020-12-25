@@ -371,6 +371,35 @@ final class Storage
         }
     }
 
+    static void deleteEntry(int id)
+    {
+        try
+        {
+            closeData();
+            RecordStore.deleteRecordStore(
+                "graph.data." + Integer.toString(id)
+            );
+        }
+        catch (RecordStoreNotFoundException _)
+        {
+            // do nothing
+        }
+        catch (Exception ex)
+        {
+            throw new RuntimeException(ex.toString());
+        }
+
+        try
+        {
+            mainListRS.deleteRecord(id);
+        }
+        catch (Exception ex)
+        {
+            throw new RuntimeException(ex.toString());
+        }
+
+    }
+
     static void loadEntries()
     {
         RecordEnumeration re = null;

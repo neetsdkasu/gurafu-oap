@@ -112,6 +112,7 @@ final class AppMain extends GameCanvas
             keyPressedAppState_3(keyCode);
             break;
         case 7:
+        case 8:
             keyPressedAppState_7(keyCode);
             break;
         default:
@@ -152,6 +153,7 @@ final class AppMain extends GameCanvas
             renderAppState_3(g);
             break;
         case 7:
+        case 8:
             renderAppState_7(g);
             break;
         default:
@@ -174,37 +176,40 @@ final class AppMain extends GameCanvas
 
         final int h = SMALL_FONT.getHeight();
 
-        g.drawString(
-            "X-axis",
-            15,
-            2*h,
-            Graphics.LEFT|Graphics.BOTTOM
-        );
-        g.drawString(
-            "Y-axis",
-            DISP_W/2+5,
-            2*h,
-            Graphics.LEFT|Graphics.BOTTOM
-        );
+        if (appState == 7)
+        {
+            g.drawString(
+                "X-axis",
+                15,
+                2*h,
+                Graphics.LEFT|Graphics.BOTTOM
+            );
+            g.drawString(
+                "Y-axis",
+                DISP_W/2+5,
+                2*h,
+                Graphics.LEFT|Graphics.BOTTOM
+            );
 
-        g.setColor(0xFFFFFF);
-        g.fillRect(10, 2*h, DISP_W - 20, h);
-        g.setColor(0x777777);
-        g.drawRect(10, 2*h, DISP_W - 20, h);
-        g.setColor(0x000000);
-        g.drawString(
-            valueX,
-            DISP_W/2-5,
-            3*h,
-            Graphics.RIGHT|Graphics.BOTTOM
-        );
-        g.drawString(
-            valueY,
-            DISP_W - 15,
-            3*h,
-            Graphics.RIGHT|Graphics.BOTTOM
-        );
-        g.drawLine(DISP_W/2, 2*h, DISP_W/2, 3*h);
+            g.setColor(0xFFFFFF);
+            g.fillRect(10, 2*h, DISP_W - 20, h);
+            g.setColor(0x777777);
+            g.drawRect(10, 2*h, DISP_W - 20, h);
+            g.setColor(0x000000);
+            g.drawString(
+                valueX,
+                DISP_W/2-5,
+                3*h,
+                Graphics.RIGHT|Graphics.BOTTOM
+            );
+            g.drawString(
+                valueY,
+                DISP_W - 15,
+                3*h,
+                Graphics.RIGHT|Graphics.BOTTOM
+            );
+            g.drawLine(DISP_W/2, 2*h, DISP_W/2, 3*h);
+        }
 
         renderButton(g, "DELETE", sel == 0, 5*h);
         renderButton(g, "CANCEL", sel == 1, 7*h);
@@ -1023,26 +1028,38 @@ final class AppMain extends GameCanvas
             switch (sel)
             {
             case 0:
-                Storage.deleteElement(curElement.id);
-                curElement = null;
-                Storage.loadElements();
-                if (Storage.getLastElement() == null)
+                if (appState == 7)
                 {
+                    Storage.deleteElement(curElement.id);
+                    curElement = null;
+                    Storage.loadElements();
+                    if (Storage.getLastElement() == null)
+                    {
+                        sel = 0;
+                        viewTop = 0;
+                        appState = 2;
+                    }
+                    else
+                    {
+                        viewTop = Math.min(viewTop, Storage.elements.length-1);
+                        for (int i = 0; viewTop-i >= 0 && i < values.length; i++)
+                        {
+                            Element e = Storage.elements[viewTop-i];
+                            values[i][0] = curEntry.valueXString(e);
+                            values[i][1] = curEntry.valueYString(e);
+                        }
+                        sel = viewTop;
+                        appState = 5;
+                    }
+                }
+                else if (appState == 8)
+                {
+                    Storage.deleteEntry(curEntry.id);
+                    curEntry = null;
+                    appState = 0;
                     sel = 0;
                     viewTop = 0;
-                    appState = 2;
-                }
-                else
-                {
-                    viewTop = Math.min(viewTop, Storage.elements.length-1);
-                    for (int i = 0; viewTop-i >= 0 && i < values.length; i++)
-                    {
-                        Element e = Storage.elements[viewTop-i];
-                        values[i][0] = curEntry.valueXString(e);
-                        values[i][1] = curEntry.valueYString(e);
-                    }
-                    sel = viewTop;
-                    appState = 5;
+                    Storage.loadEntries();
                 }
                 render();
                 setTicker(new Ticker("deleted"));
@@ -1051,7 +1068,7 @@ final class AppMain extends GameCanvas
                 break;
             case 1:
                 sel = 0;
-                appState = 6;
+                appState = appState == 7 ? 6 : 2;
                 render();
                 valueX = "";
                 valueY = "";
@@ -1822,6 +1839,9 @@ final class AppMain extends GameCanvas
                 break;
             case 4: // DELETE
                 // TODO
+                appState = 8;
+                sel = 1;
+                render();
                 break;
             case 5: // BACK
                 Storage.closeData();
