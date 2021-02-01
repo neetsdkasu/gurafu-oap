@@ -196,10 +196,6 @@ final class Entry
     {
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date());
-        if (cal.get(Calendar.YEAR) < 2020)
-        {
-            cal.set(Calendar.YEAR, 2021);
-        }
         return cal;
     }
 
