@@ -196,10 +196,6 @@ final class Entry
     {
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date());
-        if (cal.get(Calendar.YEAR) < 2020)
-        {
-            cal.set(Calendar.YEAR, 2021);
-        }
         return cal;
     }
 
@@ -244,8 +240,8 @@ final class Entry
 
     static int diffYMD(Element e1, Element e2)
     {
-        int diff = (DAYSUM[e1.getMonth()] + (isOverLeap(e1) ? 1 : 0))
-                 - (DAYSUM[e2.getMonth()] + (isOverLeap(e2) ? 1 : 0))
+        int diff = (DAYSUM[e1.getMonth()-1] + (isOverLeap(e1) ? 1 : 0))
+                 - (DAYSUM[e2.getMonth()-1] + (isOverLeap(e2) ? 1 : 0))
                  + (e1.getDay() - e2.getDay());
         for (int year = e2.getYear(); year < e1.getYear(); year++)
         {
