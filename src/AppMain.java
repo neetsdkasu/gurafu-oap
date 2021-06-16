@@ -6,7 +6,8 @@ final class AppMain extends GameCanvas
     static final int
         STATE_MAIN_MENU = 0,
         STATE_NEW_DATASET = 1,
-        STATE_DATASET_MENU = 2;
+        STATE_DATASET_MENU = 2,
+        STATE_ADD_DATA = 3;
 
     static final int
         DISP_W = 240,
@@ -104,8 +105,8 @@ final class AppMain extends GameCanvas
         case STATE_DATASET_MENU:
             keyPressedOnDatasetMenu(keyCode);
             break;
-        case 3:
-            keyPressedAppState_3(keyCode);
+        case STATE_ADD_DATA:
+            keyPressedOnAddData(keyCode);
             break;
         case 4:
             keyPressedAppState_4(keyCode);
@@ -114,7 +115,7 @@ final class AppMain extends GameCanvas
             keyPressedAppState_5(keyCode);
             break;
         case 6:
-            keyPressedAppState_3(keyCode);
+            keyPressedOnAddData(keyCode);
             break;
         case 7:
         case 8:
@@ -145,8 +146,8 @@ final class AppMain extends GameCanvas
         case STATE_DATASET_MENU:
             renderForDatasetMenu(g);
             break;
-        case 3:
-            renderAppState_3(g);
+        case STATE_ADD_DATA:
+            renderForAddData(g);
             break;
         case 4:
             renderAppState_4(g);
@@ -155,7 +156,7 @@ final class AppMain extends GameCanvas
             renderAppState_5(g);
             break;
         case 6:
-            renderAppState_3(g);
+            renderForAddData(g);
             break;
         case 7:
         case 8:
@@ -546,7 +547,8 @@ final class AppMain extends GameCanvas
         renderButton(g, "BACK", (sel & 1) == 0, DISP_H - SMALL_FONT.getHeight() - 1);
     }
 
-    void renderAppState_3(Graphics g)
+    // STATE_ADD_DATA
+    void renderForAddData(Graphics g)
     {
         g.setColor(0xFFFFFF);
 
@@ -558,7 +560,7 @@ final class AppMain extends GameCanvas
         );
 
         g.drawString(
-            appState == 3 ? "ADD DATA" : "MODIFY DATA",
+            appState == STATE_ADD_DATA ? "ADD DATA" : "MODIFY DATA",
             20,
             30,
             Graphics.LEFT|Graphics.TOP
@@ -1318,7 +1320,8 @@ final class AppMain extends GameCanvas
         }
    }
 
-    private void keyPressedAppState_3(int keyCode)
+    // STATE_ADD_DATA
+    private void keyPressedOnAddData(int keyCode)
     {
         switch (keyCode)
         {
@@ -1353,7 +1356,7 @@ final class AppMain extends GameCanvas
         case DOWN:
             if (sel < 16)
             {
-                if (appState == 3)
+                if (appState == STATE_ADD_DATA)
                 {
                     sel = (sel + 1) % 4;
                 }
@@ -1371,7 +1374,7 @@ final class AppMain extends GameCanvas
         case UP:
             if (sel < 16)
             {
-                if (appState == 3)
+                if (appState == STATE_ADD_DATA)
                 {
                     sel = (sel + 3) % 4;
                 }
@@ -1419,7 +1422,7 @@ final class AppMain extends GameCanvas
                 }
                 setTicker(new Ticker("saved"));
             case 3: // CANCEL
-                if (appState == 3)
+                if (appState == STATE_ADD_DATA)
                 {
                     curElement = null;
                     appState = STATE_DATASET_MENU;
@@ -1781,7 +1784,7 @@ final class AppMain extends GameCanvas
             {
             case 0: // ADD DATA
                 curElement = curEntry.newElement();
-                appState = 3;
+                appState = STATE_ADD_DATA;
                 render();
                 break;
             case 1: // SHOW GRAPH
