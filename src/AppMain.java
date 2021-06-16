@@ -96,7 +96,7 @@ final class AppMain extends GameCanvas
         switch (appState)
         {
         case STATE_MAIN_MENU:
-            keyPressedAppState_0(keyCode);
+            keyPressedOnMainMenu(keyCode);
             break;
         case STATE_NEW_DATASET:
             keyPressedAppState_1(keyCode);
@@ -1967,7 +1967,7 @@ final class AppMain extends GameCanvas
     }
 
     // STATE_MAIN_MENU
-    private void keyPressedAppState_0(int keyCode)
+    private void keyPressedOnMainMenu(int keyCode)
     {
         switch (getGameAction(keyCode))
         {
