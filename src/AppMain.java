@@ -111,7 +111,7 @@ final class AppMain extends GameCanvas
             keyPressedOnDatasetMenu(keyCode);
             break;
         case STATE_ADD_DATA:
-            keyPressedOnAddData(keyCode);
+            keyPressedOnEditData(keyCode);
             break;
         case STATE_SHOW_GRAPH:
             keyPressedOnShowGraph(keyCode);
@@ -120,7 +120,7 @@ final class AppMain extends GameCanvas
             keyPressedOnShowData(keyCode);
             break;
         case STATE_MODIFY_DATA:
-            keyPressedOnAddData(keyCode);
+            keyPressedOnEditData(keyCode);
             break;
         case STATE_CONFIRM_DELETE_DATA:
         case STATE_CONFIRM_DELETE_DATASET:
@@ -152,7 +152,7 @@ final class AppMain extends GameCanvas
             renderForDatasetMenu(g);
             break;
         case STATE_ADD_DATA:
-            renderForAddData(g);
+            renderForEditData(g);
             break;
         case STATE_SHOW_GRAPH:
             renderForShowGraph(g);
@@ -161,7 +161,7 @@ final class AppMain extends GameCanvas
             renderForShowData(g);
             break;
         case STATE_MODIFY_DATA:
-            renderForAddData(g);
+            renderForEditData(g);
             break;
         case STATE_CONFIRM_DELETE_DATA:
         case STATE_CONFIRM_DELETE_DATASET:
@@ -556,7 +556,7 @@ final class AppMain extends GameCanvas
     }
 
     // STATE_ADD_DATA and STATE_MODIFY_DATA
-    void renderForAddData(Graphics g)
+    void renderForEditData(Graphics g)
     {
         g.setColor(0xFFFFFF);
 
@@ -1332,7 +1332,7 @@ final class AppMain extends GameCanvas
    }
 
     // STATE_ADD_DATA and STATE_MODIFY_DATA
-    private void keyPressedOnAddData(int keyCode)
+    private void keyPressedOnEditData(int keyCode)
     {
         switch (keyCode)
         {
