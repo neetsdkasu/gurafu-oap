@@ -137,7 +137,7 @@ final class AppMain extends GameCanvas
         switch (appState)
         {
         case STATE_MAIN_MENU:
-            renderAppState_0(g);
+            renderForMainMenu(g);
             break;
         case STATE_NEW_DATASET:
             renderAppState_1(g);
@@ -901,7 +901,7 @@ final class AppMain extends GameCanvas
     }
 
     // STATE_MAIN_MENU
-    void renderAppState_0(Graphics g)
+    void renderForMainMenu(Graphics g)
     {
         final int h = SMALL_FONT.getHeight();
 
