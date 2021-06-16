@@ -4,6 +4,9 @@ import javax.microedition.lcdui.game.*;
 final class AppMain extends GameCanvas
 {
     static final int
+        STATE_MAIN = 0;
+
+    static final int
         DISP_W = 240,
         DISP_H = 268,
         KEY_CLR = -8;
@@ -16,7 +19,7 @@ final class AppMain extends GameCanvas
         );
 
     private static int
-        appState = 0,
+        appState = STATE_MAIN,
         sel = 0,
         viewTop = 0,
         leftEnd = 0,
@@ -90,7 +93,7 @@ final class AppMain extends GameCanvas
         }
         switch (appState)
         {
-        case 0:
+        case STATE_MAIN:
             keyPressedAppState_0(keyCode);
             break;
         case 1:
@@ -131,7 +134,7 @@ final class AppMain extends GameCanvas
 
         switch (appState)
         {
-        case 0:
+        case STATE_MAIN:
             renderAppState_0(g);
             break;
         case 1:
@@ -893,6 +896,7 @@ final class AppMain extends GameCanvas
 
     }
 
+    // STATE_MAIN
     void renderAppState_0(Graphics g)
     {
         final int h = SMALL_FONT.getHeight();
@@ -1056,7 +1060,7 @@ final class AppMain extends GameCanvas
                 {
                     Storage.deleteEntry(curEntry.id);
                     curEntry = null;
-                    appState = 0;
+                    appState = STATE_MAIN;
                     sel = 0;
                     viewTop = 0;
                     Storage.loadEntries();
@@ -1846,7 +1850,7 @@ final class AppMain extends GameCanvas
             case 5: // BACK
                 Storage.closeData();
                 curEntry = null;
-                appState = 0;
+                appState = STATE_MAIN;
                 sel = 0;
                 viewTop = 0;
                 Storage.loadEntries();
@@ -1932,7 +1936,7 @@ final class AppMain extends GameCanvas
                 }
                 else
                 {
-                    appState = 0;
+                    appState = STATE_MAIN;
                     sel = 0;
                     viewTop = 0;
                     curEntry = null;
@@ -1942,7 +1946,7 @@ final class AppMain extends GameCanvas
                 }
                 break;
             case 3: // CANCEL
-                appState = 0;
+                appState = STATE_MAIN;
                 sel = 0;
                 viewTop = 0;
                 render();
@@ -1956,6 +1960,7 @@ final class AppMain extends GameCanvas
         }
     }
 
+    // STATE_MAIN
     private void keyPressedAppState_0(int keyCode)
     {
         switch (getGameAction(keyCode))
