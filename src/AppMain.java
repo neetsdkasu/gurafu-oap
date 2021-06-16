@@ -10,7 +10,7 @@ final class AppMain extends GameCanvas
         STATE_ADD_DATA = 3,
         STATE_SHOW_GRAPH = 4,
         STATE_SHOW_DATA = 5,
-        STATE_EDIT_DATA = 6,
+        STATE_MODIFY_DATA = 6,
         STATE_CONFIRM_DELETE_DATA = 7,
         STATE_CONFIRM_DELETE_DATASET = 8;
 
@@ -119,7 +119,7 @@ final class AppMain extends GameCanvas
         case STATE_SHOW_DATA:
             keyPressedOnShowData(keyCode);
             break;
-        case STATE_EDIT_DATA:
+        case STATE_MODIFY_DATA:
             keyPressedOnAddData(keyCode);
             break;
         case STATE_CONFIRM_DELETE_DATA:
@@ -160,7 +160,7 @@ final class AppMain extends GameCanvas
         case STATE_SHOW_DATA:
             renderForShowData(g);
             break;
-        case STATE_EDIT_DATA:
+        case STATE_MODIFY_DATA:
             renderForAddData(g);
             break;
         case STATE_CONFIRM_DELETE_DATA:
@@ -555,7 +555,7 @@ final class AppMain extends GameCanvas
         renderButton(g, "BACK", (sel & 1) == 0, DISP_H - SMALL_FONT.getHeight() - 1);
     }
 
-    // STATE_ADD_DATA and STATE_EDIT_DATA
+    // STATE_ADD_DATA and STATE_MODIFY_DATA
     void renderForAddData(Graphics g)
     {
         g.setColor(0xFFFFFF);
@@ -568,7 +568,7 @@ final class AppMain extends GameCanvas
         );
 
         g.drawString(
-            appState == STATE_ADD_DATA ? "ADD DATA" : "EDIT DATA",
+            appState == STATE_ADD_DATA ? "ADD DATA" : "MODIFY DATA",
             20,
             30,
             Graphics.LEFT|Graphics.TOP
@@ -643,7 +643,7 @@ final class AppMain extends GameCanvas
 
         renderButton(g, "OK", sel == 2, 180);
         renderButton(g, "CANCEL", sel == 3, 200);
-        if (appState == STATE_EDIT_DATA)
+        if (appState == STATE_MODIFY_DATA)
         {
             renderButton(g, "DELETE", sel == 4, 230);
         }
@@ -1087,7 +1087,7 @@ final class AppMain extends GameCanvas
                 break;
             case 1:
                 sel = 0;
-                appState = appState == STATE_CONFIRM_DELETE_DATA ? STATE_EDIT_DATA : STATE_DATASET_MENU;
+                appState = appState == STATE_CONFIRM_DELETE_DATA ? STATE_MODIFY_DATA : STATE_DATASET_MENU;
                 render();
                 valueX = "";
                 valueY = "";
@@ -1198,7 +1198,7 @@ final class AppMain extends GameCanvas
             }
             else
             {
-                appState = STATE_EDIT_DATA;
+                appState = STATE_MODIFY_DATA;
                 curElement = Storage.elements[sel];
                 sel = 0;
                 render();
@@ -1331,7 +1331,7 @@ final class AppMain extends GameCanvas
         }
    }
 
-    // STATE_ADD_DATA and STATE_EDIT_DATA
+    // STATE_ADD_DATA and STATE_MODIFY_DATA
     private void keyPressedOnAddData(int keyCode)
     {
         switch (keyCode)
@@ -1440,7 +1440,7 @@ final class AppMain extends GameCanvas
                     sel = 0;
                     render();
                 }
-                else if (appState == STATE_EDIT_DATA)
+                else if (appState == STATE_MODIFY_DATA)
                 {
                     curElement = null;
                     if (sel == 2)
