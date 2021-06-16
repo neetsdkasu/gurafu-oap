@@ -7,7 +7,8 @@ final class AppMain extends GameCanvas
         STATE_MAIN_MENU = 0,
         STATE_NEW_DATASET = 1,
         STATE_DATASET_MENU = 2,
-        STATE_ADD_DATA = 3;
+        STATE_ADD_DATA = 3,
+        STATE_SHOW_GRAPH = 4;
 
     static final int
         DISP_W = 240,
@@ -108,8 +109,8 @@ final class AppMain extends GameCanvas
         case STATE_ADD_DATA:
             keyPressedOnAddData(keyCode);
             break;
-        case 4:
-            keyPressedAppState_4(keyCode);
+        case STATE_SHOW_GRAPH:
+            keyPressedOnShowGraph(keyCode);
             break;
         case 5:
             keyPressedAppState_5(keyCode);
@@ -149,8 +150,8 @@ final class AppMain extends GameCanvas
         case STATE_ADD_DATA:
             renderForAddData(g);
             break;
-        case 4:
-            renderAppState_4(g);
+        case STATE_SHOW_GRAPH:
+            renderForShowGraph(g);
             break;
         case 5:
             renderAppState_5(g);
@@ -323,7 +324,8 @@ final class AppMain extends GameCanvas
 
     }
 
-    void renderAppState_4(Graphics g)
+    // STATE_SHOW_GRAPH
+    void renderForShowGraph(Graphics g)
     {
         g.setColor(0xFFFFFF);
 
@@ -1199,7 +1201,8 @@ final class AppMain extends GameCanvas
         }
     }
 
-    private void keyPressedAppState_4(int keyCode)
+    // STATE_SHOW_GRAPH
+    private void keyPressedOnShowGraph(int keyCode)
     {
         switch (keyCode)
         {
@@ -1813,7 +1816,7 @@ final class AppMain extends GameCanvas
                 valueMinY = curEntry.valueYString(Storage.minElement);
                 avgAllY = Storage.getAverageY();
                 valueAvgAllY = Entry.valueString(curEntry.yAxisType, avgAllY);
-                appState = 4;
+                appState = STATE_SHOW_GRAPH;
                 render();
                 break;
             case 2: // SHOW DATA
