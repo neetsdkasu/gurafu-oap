@@ -11,7 +11,8 @@ final class AppMain extends GameCanvas
         STATE_SHOW_GRAPH = 4,
         STATE_SHOW_DATA = 5,
         STATE_EDIT_DATA = 6,
-        STATE_CONFIRM_DELETE_DATA = 7;
+        STATE_CONFIRM_DELETE_DATA = 7,
+        STATE_CONFIRM_DELETE_DATASET = 8;
 
     static final int
         DISP_W = 240,
@@ -122,7 +123,7 @@ final class AppMain extends GameCanvas
             keyPressedOnAddData(keyCode);
             break;
         case STATE_CONFIRM_DELETE_DATA:
-        case 8:
+        case STATE_CONFIRM_DELETE_DATASET:
             keyPressedOnConfirmDelete(keyCode);
             break;
         default:
@@ -163,7 +164,7 @@ final class AppMain extends GameCanvas
             renderForAddData(g);
             break;
         case STATE_CONFIRM_DELETE_DATA:
-        case 8:
+        case STATE_CONFIRM_DELETE_DATASET:
             renderForConfirmDelete(g);
             break;
         default:
@@ -173,7 +174,7 @@ final class AppMain extends GameCanvas
         flushGraphics();
     }
 
-    // STATE_CONFIRM_DELETE_DATA
+    // STATE_CONFIRM_DELETE_DATA and STATE_CONFIRM_DELETE_DATASET
     void renderForConfirmDelete(Graphics g)
     {
         g.setColor(0xFFFFFF);
@@ -1027,7 +1028,7 @@ final class AppMain extends GameCanvas
         sel = (newLeftEnd << 1) | 1;
     }
 
-    // STATE_CONFIRM_DELETE_DATA
+    // STATE_CONFIRM_DELETE_DATA and STATE_CONFIRM_DELETE_DATASET
     private void keyPressedOnConfirmDelete(int keyCode)
     {
         if (keyCode == KEY_CLR)
@@ -1070,7 +1071,7 @@ final class AppMain extends GameCanvas
                         appState = STATE_SHOW_DATA;
                     }
                 }
-                else if (appState == 8)
+                else if (appState == STATE_CONFIRM_DELETE_DATASET)
                 {
                     Storage.deleteEntry(curEntry.id);
                     curEntry = null;
@@ -1861,7 +1862,7 @@ final class AppMain extends GameCanvas
                 break;
             case 4: // DELETE
                 // TODO
-                appState = 8;
+                appState = STATE_CONFIRM_DELETE_DATASET;
                 sel = 1;
                 render();
                 break;
