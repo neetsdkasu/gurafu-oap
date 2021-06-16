@@ -8,7 +8,8 @@ final class AppMain extends GameCanvas
         STATE_NEW_DATASET = 1,
         STATE_DATASET_MENU = 2,
         STATE_ADD_DATA = 3,
-        STATE_SHOW_GRAPH = 4;
+        STATE_SHOW_GRAPH = 4,
+        STATE_SHOW_DATA = 5;
 
     static final int
         DISP_W = 240,
@@ -112,8 +113,8 @@ final class AppMain extends GameCanvas
         case STATE_SHOW_GRAPH:
             keyPressedOnShowGraph(keyCode);
             break;
-        case 5:
-            keyPressedAppState_5(keyCode);
+        case STATE_SHOW_DATA:
+            keyPressedOnShowData(keyCode);
             break;
         case 6:
             keyPressedOnAddData(keyCode);
@@ -153,8 +154,8 @@ final class AppMain extends GameCanvas
         case STATE_SHOW_GRAPH:
             renderForShowGraph(g);
             break;
-        case 5:
-            renderAppState_5(g);
+        case STATE_SHOW_DATA:
+            renderForShowData(g);
             break;
         case 6:
             renderForAddData(g);
@@ -222,7 +223,8 @@ final class AppMain extends GameCanvas
         renderButton(g, "CANCEL", sel == 1, 7*h);
     }
 
-    void renderAppState_5(Graphics g)
+    // STATE_SHOW_DATA
+    void renderForShowData(Graphics g)
     {
         g.setColor(0xFFFFFF);
 
@@ -1061,7 +1063,7 @@ final class AppMain extends GameCanvas
                             values[i][1] = curEntry.valueYString(e);
                         }
                         sel = viewTop;
-                        appState = 5;
+                        appState = STATE_SHOW_DATA;
                     }
                 }
                 else if (appState == 8)
@@ -1094,7 +1096,8 @@ final class AppMain extends GameCanvas
         }
     }
 
-    private void keyPressedAppState_5(int keyCode)
+    // STATE_SHOW_DATA
+    private void keyPressedOnShowData(int keyCode)
     {
         if (keyCode == KEY_CLR)
         {
@@ -1446,7 +1449,7 @@ final class AppMain extends GameCanvas
                         }
                     }
                     sel = viewTop;
-                    appState = 5;
+                    appState = STATE_SHOW_DATA;
                     render();
                 }
                 break;
@@ -1839,7 +1842,7 @@ final class AppMain extends GameCanvas
                     values[i][0] = curEntry.valueXString(e);
                     values[i][1] = curEntry.valueYString(e);
                 }
-                appState = 5;
+                appState = STATE_SHOW_DATA;
                 render();
                 break;
             case 3: // EXPORT
