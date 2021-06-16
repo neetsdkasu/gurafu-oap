@@ -4,7 +4,8 @@ import javax.microedition.lcdui.game.*;
 final class AppMain extends GameCanvas
 {
     static final int
-        STATE_MAIN = 0;
+        STATE_MAIN = 0,
+        STATE_NEW_DATASET = 1;
 
     static final int
         DISP_W = 240,
@@ -57,7 +58,7 @@ final class AppMain extends GameCanvas
 
     void setNewTitle(String title)
     {
-        appState = 1;
+        appState = STATE_NEW_DATASET;
         curEntry = new Entry();
         curEntry.title = title;
         render();
@@ -96,7 +97,7 @@ final class AppMain extends GameCanvas
         case STATE_MAIN:
             keyPressedAppState_0(keyCode);
             break;
-        case 1:
+        case STATE_NEW_DATASET:
             keyPressedAppState_1(keyCode);
             break;
         case 2:
@@ -137,7 +138,7 @@ final class AppMain extends GameCanvas
         case STATE_MAIN:
             renderAppState_0(g);
             break;
-        case 1:
+        case STATE_NEW_DATASET:
             renderAppState_1(g);
             break;
         case 2:
@@ -822,6 +823,7 @@ final class AppMain extends GameCanvas
 
     }
 
+    // STATE_NEW_DATASET
     void renderAppState_1(Graphics g)
     {
         g.setColor(0xFFFFFF);
@@ -1865,6 +1867,7 @@ final class AppMain extends GameCanvas
         }
     }
 
+    // STATE_NEW_DATASET
     private void keyPressedAppState_1(int keyCode)
     {
         if (keyCode == KEY_CLR)
