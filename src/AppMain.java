@@ -140,7 +140,7 @@ final class AppMain extends GameCanvas
             renderForMainMenu(g);
             break;
         case STATE_NEW_DATASET:
-            renderAppState_1(g);
+            renderForNewDataset(g);
             break;
         case STATE_DATASET_MENU:
             renderAppState_2(g);
@@ -826,7 +826,7 @@ final class AppMain extends GameCanvas
     }
 
     // STATE_NEW_DATASET
-    void renderAppState_1(Graphics g)
+    void renderForNewDataset(Graphics g)
     {
         g.setColor(0xFFFFFF);
 
