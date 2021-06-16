@@ -10,7 +10,8 @@ final class AppMain extends GameCanvas
         STATE_ADD_DATA = 3,
         STATE_SHOW_GRAPH = 4,
         STATE_SHOW_DATA = 5,
-        STATE_EDIT_DATA = 6;
+        STATE_EDIT_DATA = 6,
+        STATE_CONFIRM_DELETE_DATA = 7;
 
     static final int
         DISP_W = 240,
@@ -120,9 +121,9 @@ final class AppMain extends GameCanvas
         case STATE_EDIT_DATA:
             keyPressedOnAddData(keyCode);
             break;
-        case 7:
+        case STATE_CONFIRM_DELETE_DATA:
         case 8:
-            keyPressedAppState_7(keyCode);
+            keyPressedOnConfirmDelete(keyCode);
             break;
         default:
             break;
@@ -161,9 +162,9 @@ final class AppMain extends GameCanvas
         case STATE_EDIT_DATA:
             renderForAddData(g);
             break;
-        case 7:
+        case STATE_CONFIRM_DELETE_DATA:
         case 8:
-            renderAppState_7(g);
+            renderForConfirmDelete(g);
             break;
         default:
             break;
@@ -172,7 +173,8 @@ final class AppMain extends GameCanvas
         flushGraphics();
     }
 
-    void renderAppState_7(Graphics g)
+    // STATE_CONFIRM_DELETE_DATA
+    void renderForConfirmDelete(Graphics g)
     {
         g.setColor(0xFFFFFF);
 
@@ -185,7 +187,7 @@ final class AppMain extends GameCanvas
 
         final int h = SMALL_FONT.getHeight();
 
-        if (appState == 7)
+        if (appState == STATE_CONFIRM_DELETE_DATA)
         {
             g.drawString(
                 "X-axis",
@@ -1025,7 +1027,8 @@ final class AppMain extends GameCanvas
         sel = (newLeftEnd << 1) | 1;
     }
 
-    private void keyPressedAppState_7(int keyCode)
+    // STATE_CONFIRM_DELETE_DATA
+    private void keyPressedOnConfirmDelete(int keyCode)
     {
         if (keyCode == KEY_CLR)
         {
@@ -1043,7 +1046,7 @@ final class AppMain extends GameCanvas
             switch (sel)
             {
             case 0:
-                if (appState == 7)
+                if (appState == STATE_CONFIRM_DELETE_DATA)
                 {
                     Storage.deleteElement(curElement.id);
                     curElement = null;
@@ -1083,7 +1086,7 @@ final class AppMain extends GameCanvas
                 break;
             case 1:
                 sel = 0;
-                appState = appState == 7 ? STATE_EDIT_DATA : STATE_DATASET_MENU;
+                appState = appState == STATE_CONFIRM_DELETE_DATA ? STATE_EDIT_DATA : STATE_DATASET_MENU;
                 render();
                 valueX = "";
                 valueY = "";
@@ -1457,7 +1460,7 @@ final class AppMain extends GameCanvas
             case 4: // DELETE
                 valueX = curEntry.valueXString(curElement);
                 valueY = curEntry.valueYString(curElement);
-                appState = 7;
+                appState = STATE_CONFIRM_DELETE_DATA;
                 sel = 1;
                 render();
                 break;
