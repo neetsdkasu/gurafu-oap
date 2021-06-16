@@ -99,7 +99,7 @@ final class AppMain extends GameCanvas
             keyPressedOnMainMenu(keyCode);
             break;
         case STATE_NEW_DATASET:
-            keyPressedAppState_1(keyCode);
+            keyPressedOnNewDataset(keyCode);
             break;
         case STATE_DATASET_MENU:
             keyPressedAppState_2(keyCode);
@@ -1871,7 +1871,7 @@ final class AppMain extends GameCanvas
     }
 
     // STATE_NEW_DATASET
-    private void keyPressedAppState_1(int keyCode)
+    private void keyPressedOnNewDataset(int keyCode)
     {
         if (keyCode == KEY_CLR)
         {
@@ -1933,7 +1933,7 @@ final class AppMain extends GameCanvas
             {
             case 0: // x-axis
             case 1: // y-axis
-                keyPressedAppState_1(getKeyCode(RIGHT));
+                keyPressedOnNewDataset(getKeyCode(RIGHT));
                 break;
             case 2: // OK
                 if (!Storage.saveEntry(curEntry))
