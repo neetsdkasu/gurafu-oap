@@ -102,7 +102,7 @@ final class AppMain extends GameCanvas
             keyPressedOnNewDataset(keyCode);
             break;
         case STATE_DATASET_MENU:
-            keyPressedAppState_2(keyCode);
+            keyPressedOnDatasetMenu(keyCode);
             break;
         case 3:
             keyPressedAppState_3(keyCode);
@@ -1759,7 +1759,7 @@ final class AppMain extends GameCanvas
     }
 
     // STATE_DATASET_MENU
-    private void keyPressedAppState_2(int keyCode)
+    private void keyPressedOnDatasetMenu(int keyCode)
     {
         if (keyCode == KEY_CLR)
         {
