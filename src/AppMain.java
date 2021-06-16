@@ -5,7 +5,8 @@ final class AppMain extends GameCanvas
 {
     static final int
         STATE_MAIN = 0,
-        STATE_NEW_DATASET = 1;
+        STATE_NEW_DATASET = 1,
+        STATE_DATASET_MENU = 2;
 
     static final int
         DISP_W = 240,
@@ -100,7 +101,7 @@ final class AppMain extends GameCanvas
         case STATE_NEW_DATASET:
             keyPressedAppState_1(keyCode);
             break;
-        case 2:
+        case STATE_DATASET_MENU:
             keyPressedAppState_2(keyCode);
             break;
         case 3:
@@ -141,7 +142,7 @@ final class AppMain extends GameCanvas
         case STATE_NEW_DATASET:
             renderAppState_1(g);
             break;
-        case 2:
+        case STATE_DATASET_MENU:
             renderAppState_2(g);
             break;
         case 3:
@@ -764,6 +765,7 @@ final class AppMain extends GameCanvas
         }
     }
 
+    // STATE_DATASET_MENU
     void renderAppState_2(Graphics g)
     {
         g.setColor(0xFFFFFF);
@@ -1043,7 +1045,7 @@ final class AppMain extends GameCanvas
                     {
                         sel = 0;
                         viewTop = 0;
-                        appState = 2;
+                        appState = STATE_DATASET_MENU;
                     }
                     else
                     {
@@ -1074,7 +1076,7 @@ final class AppMain extends GameCanvas
                 break;
             case 1:
                 sel = 0;
-                appState = appState == 7 ? 6 : 2;
+                appState = appState == 7 ? 6 : STATE_DATASET_MENU;
                 render();
                 valueX = "";
                 valueY = "";
@@ -1177,7 +1179,7 @@ final class AppMain extends GameCanvas
         case FIRE:
             if (sel == Storage.elements.length)
             {
-                appState = 2;
+                appState = STATE_DATASET_MENU;
                 sel = 0;
                 viewTop = 0;
                 render();
@@ -1308,7 +1310,7 @@ final class AppMain extends GameCanvas
                 curElement = null;
                 valueX = "";
                 valueY = "";
-                appState = 2;
+                appState = STATE_DATASET_MENU;
                 sel = 1;
                 render();
             }
@@ -1420,7 +1422,7 @@ final class AppMain extends GameCanvas
                 if (appState == 3)
                 {
                     curElement = null;
-                    appState = 2;
+                    appState = STATE_DATASET_MENU;
                     sel = 0;
                     render();
                 }
@@ -1756,6 +1758,7 @@ final class AppMain extends GameCanvas
         }
     }
 
+    // STATE_DATASET_MENU
     private void keyPressedAppState_2(int keyCode)
     {
         if (keyCode == KEY_CLR)
@@ -2011,7 +2014,7 @@ final class AppMain extends GameCanvas
                 curEntry = Storage.entries[sel-1];
                 Storage.saveEntry(curEntry);
                 Storage.openData(curEntry);
-                appState = 2;
+                appState = STATE_DATASET_MENU;
                 sel = 0;
                 render();
             }
