@@ -36,7 +36,8 @@ final class AppMain extends GameCanvas
         avgAllY = 0,
         avgViewY = 0,
         rangeBegin = 0,
-        rangeEnd = 0;
+        rangeEnd = 0,
+        exportSampleSize;
 
     private static Entry
         curEntry = null;
@@ -50,7 +51,9 @@ final class AppMain extends GameCanvas
         valueMaxY = "",
         valueMinY = "",
         valueAvgAllY = "",
-        valueAvgViewY = "";
+        valueAvgViewY = "",
+        rangeSize = "",
+        rangeCharSize = "";
 
     private static String[][]
         values = null;
@@ -86,6 +89,20 @@ final class AppMain extends GameCanvas
                 .append('\n');
         }
         GraphMIDlet.showExportTextBox(sb.toString());
+    }
+
+    private void calcExportSampleSize()
+    {
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < 8; i++)
+        {
+            Element e = Storage.elements[(Storage.elements.length * i) >> 3];
+            sb.append(curEntry.valueXString(e))
+                .append(',')
+                .append(curEntry.valueYString(e))
+                .append('\n');
+        }
+        exportSampleSize = sb.length() >> 3;
     }
 
     protected void keyRepeated(int keyCode)
@@ -270,9 +287,38 @@ final class AppMain extends GameCanvas
         }
 
         // TODO (show range size)
+        g.setColor(0xFFFFFF);
 
-        renderButton(g, "OK", sel == 2, 180);
-        renderButton(g, "BACK", sel == 3, 200);
+        g.drawString(
+            "size",
+            30,
+            170,
+            Graphics.LEFT|Graphics.TOP
+        );
+
+        g.drawString(
+            rangeSize,
+            DISP_W - 30,
+            170,
+            Graphics.RIGHT|Graphics.TOP
+        );
+
+        g.drawString(
+            "char size",
+            30,
+            190,
+            Graphics.LEFT|Graphics.TOP
+        );
+
+        g.drawString(
+            rangeCharSize,
+            DISP_W - 30,
+            190,
+            Graphics.RIGHT|Graphics.TOP
+        );
+
+        renderButton(g, "OK", sel == 2, 220);
+        renderButton(g, "BACK", sel == 3, 240);
     }
 
     // STATE_CONFIRM_DELETE_DATA and STATE_CONFIRM_DELETE_DATASET
@@ -1223,6 +1269,10 @@ final class AppMain extends GameCanvas
                 if (sel >= 16)
                 {
                     sel = sel / 16 - 1;
+                    calcExportSampleSize();
+                    int rsz = Storage.rangeSize(rangeBegin, rangeEnd);
+                    rangeSize = Integer.toString(rsz);
+                    rangeCharSize = Integer.toString(rsz * exportSampleSize);
                     render();
                 }
                 break;
@@ -2322,6 +2372,10 @@ final class AppMain extends GameCanvas
                 sel = 0;
                 rangeBegin = Storage.getFirstElement().x;
                 rangeEnd = Storage.getLastElement().x;
+                calcExportSampleSize();
+                int rsz = Storage.rangeSize(rangeBegin, rangeEnd);
+                rangeSize = Integer.toString(rsz);
+                rangeCharSize = Integer.toString(rsz * exportSampleSize);
                 render();
                 break;
             case 4: // DELETE
