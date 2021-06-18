@@ -12,7 +12,8 @@ final class AppMain extends GameCanvas
         STATE_SHOW_DATA = 5,
         STATE_MODIFY_DATA = 6,
         STATE_CONFIRM_DELETE_DATA = 7,
-        STATE_CONFIRM_DELETE_DATASET = 8;
+        STATE_CONFIRM_DELETE_DATASET = 8,
+        STATE_SET_EXPORT_RANGE = 9;
 
     static final int
         DISP_W = 240,
@@ -126,6 +127,9 @@ final class AppMain extends GameCanvas
         case STATE_CONFIRM_DELETE_DATASET:
             keyPressedOnConfirmDelete(keyCode);
             break;
+        case STATE_SET_EXPORT_RANGE:
+            // TODO
+            break;
         default:
             break;
         }
@@ -166,6 +170,9 @@ final class AppMain extends GameCanvas
         case STATE_CONFIRM_DELETE_DATA:
         case STATE_CONFIRM_DELETE_DATASET:
             renderForConfirmDelete(g);
+            break;
+        case STATE_SET_EXPORT_RANGE:
+            // TODO
             break;
         default:
             break;
@@ -1857,7 +1864,10 @@ final class AppMain extends GameCanvas
                     break;
                 }
                 // TODO
-                export();
+                // export();
+                appState = STATE_SET_EXPORT_RANGE;
+                // sel = ????;
+                render();
                 break;
             case 4: // DELETE
                 appState = STATE_CONFIRM_DELETE_DATASET;
