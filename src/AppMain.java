@@ -1146,8 +1146,7 @@ final class AppMain extends GameCanvas
         case KEY_NUM9:
             if (sel >= 16)
             {
-                // TODO
-                // setValueDigit(keyCode - KEY_NUM0);
+                setValueDigitForRange(keyCode - KEY_NUM0);
                 keyCode = getKeyCode(RIGHT);
             }
             break;
@@ -1170,8 +1169,7 @@ final class AppMain extends GameCanvas
             }
             else
             {
-                // TODO
-                // editValue(-1);
+                editValueForRange(-1);
             }
             render();
             break;
@@ -1182,24 +1180,21 @@ final class AppMain extends GameCanvas
             }
             else
             {
-                // TODO
-                // editValue(1);
+                editValueForRange(1);
             }
             render();
             break;
         case LEFT:
             if (sel >= 16)
             {
-                // TODO
-                // moveEditSelect(1);
+                moveEditSelectForRange(1);
                 render();
             }
             break;
         case RIGHT:
             if (sel >= 16)
             {
-                // TODO
-                // moveEditSelect(-1);
+                moveEditSelectForRange(-1);
                 render();
             }
             break;
@@ -1794,6 +1789,111 @@ final class AppMain extends GameCanvas
         }
     }
 
+    private void setValueDigitForRange(int digit)
+    {
+        int type = curEntry.xAxisType;
+        int value = sel >= 32
+                 ? rangeEnd
+                 : rangeBegin;
+        int pos = sel & 15;
+        switch (type)
+        {
+        case Entry.POINT_0:
+        case Entry.POINT_1:
+        case Entry.POINT_2:
+        case Entry.POINT_3:
+        case Entry.POINT_4:
+        case Entry.POINT_5:
+        case Entry.POINT_6:
+        case Entry.POINT_7:
+        case Entry.POINT_8:
+            if (pos == 8)
+            {
+                return;
+            }
+        case Entry.COUNTER:
+            value = setDigit(value, pos, digit);
+            break;
+        case Entry.DATE_YMDHM:
+            if (pos < 2)
+            {
+                value = Element.setMinute(
+                    value,
+                    Math.min(59, setDigit(
+                        Element.getMinute(value),
+                        pos,
+                        digit
+                    ))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_YMDH:
+            if (pos < 2)
+            {
+                value = Element.setHour(
+                    value,
+                    Math.min(23, setDigit(
+                        Element.getHour(value),
+                        pos,
+                        digit
+                    ))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_YMD:
+            if (pos < 2)
+            {
+                value = Element.setDay(
+                    value,
+                    Math.max(1, Math.min(31, setDigit(
+                            Element.getDay(value),
+                            pos,
+                            digit
+                    )))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_YM:
+            if (pos < 2)
+            {
+                value = Element.setMonth(
+                    value,
+                    Math.max(1, Math.min(12, setDigit(
+                        Element.getMonth(value),
+                        pos,
+                        digit
+                    )))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_Y:
+            int y = setDigit(
+                Element.getYear(value) % 100,
+                pos,
+                digit
+            );
+            value = Element.setYear(
+                value,
+                y < 45 ? (2000+y) : (1900+y)
+            );
+            break;
+        default:
+            break;
+        }
+        if (sel >= 32)
+        {
+            rangeEnd = value;
+        }
+        else
+        {
+            rangeBegin = value;
+        }
+    }
+
     static final int[] DIG = new int[]{
         1,
         10,
@@ -1939,11 +2039,162 @@ final class AppMain extends GameCanvas
         }
     }
 
+    private void editValueForRange(int changes)
+    {
+        int type = curEntry.xAxisType;
+        int value = sel >= 32
+                 ? rangeEnd
+                 : rangeBegin;
+        int pos = sel & 15;
+        switch (type)
+        {
+        case Entry.POINT_0:
+        case Entry.POINT_1:
+        case Entry.POINT_2:
+        case Entry.POINT_3:
+        case Entry.POINT_4:
+        case Entry.POINT_5:
+        case Entry.POINT_6:
+        case Entry.POINT_7:
+        case Entry.POINT_8:
+            if (pos == 8)
+            {
+                value = -value;
+                break;
+            }
+        case Entry.COUNTER:
+            value = changeDigit(value, pos, changes, 10);
+            break;
+        case Entry.DATE_YMDHM:
+            if (pos < 2)
+            {
+                value = Element.setMinute(
+                    value,
+                    Math.min(59, changeDigit(
+                        Element.getMinute(value),
+                        pos,
+                        changes,
+                        10 - 4*pos
+                    ))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_YMDH:
+            if (pos < 2)
+            {
+                value = Element.setHour(
+                    value,
+                    Math.min(23, changeDigit(
+                        Element.getHour(value),
+                        pos,
+                        changes,
+                        10 - 7*pos
+                    ))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_YMD:
+            if (pos < 2)
+            {
+                value = Element.setDay(
+                    value,
+                    Math.max(1, Math.min(31, changeDigit(
+                            Element.getDay(value),
+                            pos,
+                            changes,
+                            10 - 6*pos
+                    )))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_YM:
+            if (pos < 2)
+            {
+                value = Element.setMonth(
+                    value,
+                    Math.max(1, Math.min(12, changeDigit(
+                        Element.getMonth(value),
+                        pos,
+                        changes,
+                        10 - 8*pos
+                    )))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_Y:
+            int y = changeDigit(
+                Element.getYear(value) % 100,
+                pos,
+                changes,
+                10
+            );
+            value = Element.setYear(
+                value,
+                y < 45 ? (2000+y) : (1900+y)
+            );
+            break;
+        default:
+            break;
+        }
+        if (sel >= 32)
+        {
+            rangeEnd = value;
+        }
+        else
+        {
+            rangeBegin = value;
+        }
+    }
+
     private void moveEditSelect(int move)
     {
         int type = sel >= 32
                  ? curEntry.yAxisType
                  : curEntry.xAxisType;
+        int pos = sel & 15;
+        switch (type)
+        {
+        case Entry.POINT_0:
+        case Entry.POINT_1:
+        case Entry.POINT_2:
+        case Entry.POINT_3:
+        case Entry.POINT_4:
+        case Entry.POINT_5:
+        case Entry.POINT_6:
+        case Entry.POINT_7:
+        case Entry.POINT_8:
+            sel ^= pos ^ ((pos + move + 9) % 9);
+            break;
+        case Entry.COUNTER:
+            sel ^= pos ^ ((pos + move + 8) % 8);
+            break;
+        case Entry.DATE_YMDHM:
+            sel ^= pos ^ ((pos + move + 10) % 10);
+            break;
+        case Entry.DATE_YMDH:
+            sel ^= pos ^ ((pos + move + 8) % 8);
+            break;
+        case Entry.DATE_YMD:
+            sel ^= pos ^ ((pos + move + 6) % 6);
+            break;
+        case Entry.DATE_YM:
+            sel ^= pos ^ ((pos + move + 4) % 4);
+            break;
+        case Entry.DATE_Y:
+            sel ^= pos ^ ((pos + move + 2) % 2);
+            break;
+        default:
+            break;
+        }
+    }
+
+    private void moveEditSelectForRange(int move)
+    {
+        int type = curEntry.xAxisType;
         int pos = sel & 15;
         switch (type)
         {
