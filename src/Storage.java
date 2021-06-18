@@ -214,6 +214,15 @@ final class Storage
         dataRS = close(dataRS);
     }
 
+    static Element getFirstElement()
+    {
+        if (elements == null || elements.length == 0)
+        {
+            return null;
+        }
+        return elements[0];
+    }
+
     static Element getLastElement()
     {
         if (elements == null || elements.length == 0)

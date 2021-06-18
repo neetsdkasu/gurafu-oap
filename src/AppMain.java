@@ -34,7 +34,9 @@ final class AppMain extends GameCanvas
         leftEnd = 0,
         rightEnd = 0,
         avgAllY = 0,
-        avgViewY = 0;
+        avgViewY = 0,
+        rangeBegin = 0,
+        rangeEnd = 0;
 
     private static Entry
         curEntry = null;
@@ -128,7 +130,7 @@ final class AppMain extends GameCanvas
             keyPressedOnConfirmDelete(keyCode);
             break;
         case STATE_SET_EXPORT_RANGE:
-            // TODO
+            keyPressedOnSetExportRange(keyCode);
             break;
         default:
             break;
@@ -172,13 +174,105 @@ final class AppMain extends GameCanvas
             renderForConfirmDelete(g);
             break;
         case STATE_SET_EXPORT_RANGE:
-            // TODO
+            renderForSetExportRange(g);
             break;
         default:
             break;
         }
 
         flushGraphics();
+    }
+
+    // STATE_SET_EXPORT_RANGE
+    void renderForSetExportRange(Graphics g)
+    {
+        g.setColor(0xFFFFFF);
+
+        g.drawString(
+            curEntry.title,
+            20,
+            10,
+            Graphics.LEFT|Graphics.TOP
+        );
+
+        g.drawString(
+            "SET EXPORT RANGE",
+            20,
+            30,
+            Graphics.LEFT|Graphics.TOP
+        );
+
+        g.drawString(
+            "begin",
+            30,
+            50,
+            Graphics.LEFT|Graphics.TOP
+        );
+
+        renderEditElement(
+            g,
+            curEntry.xAxisType,
+            rangeBegin,
+            70
+        );
+
+        if (sel >= 16 && sel < 32)
+        {
+            g.setColor(0x00FFFF);
+            g.drawRect(
+                DISP_W-40 - (sel&15)*18+2,
+                70,
+                14,
+                SMALL_FONT.getHeight()
+            );
+            g.setColor(0x002222);
+            g.drawRect(20, 50, DISP_W-40, 50);
+        }
+
+        if (sel == 0)
+        {
+            g.setColor(0x00FFFF);
+            g.drawRect(20, 50, DISP_W-40, 50);
+        }
+
+        g.setColor(0xFFFFFF);
+        g.drawString(
+            "end",
+            30,
+            110,
+            Graphics.LEFT|Graphics.TOP
+        );
+
+        renderEditElement(
+            g,
+            curEntry.xAxisType,
+            rangeEnd,
+            130
+        );
+
+        if (sel >= 32)
+        {
+            g.setColor(0x00FFFF);
+            g.drawRect(
+                DISP_W-40 - (sel&15)*18+2,
+                130,
+                14,
+                SMALL_FONT.getHeight()
+            );
+            g.setColor(0x002222);
+            g.drawRect(20, 110, DISP_W-40, 50);
+        }
+
+        if (sel == 1)
+        {
+            g.setColor(0x00FFFF);
+            g.drawRect(20, 110, DISP_W-40, 50);
+        }
+
+        // TODO (show range size)
+
+        renderButton(g, "OK", sel == 2, 180);
+        renderButton(g, "BACK", sel == 3, 200);
     }
 
     // STATE_CONFIRM_DELETE_DATA and STATE_CONFIRM_DELETE_DATASET
@@ -1035,6 +1129,114 @@ final class AppMain extends GameCanvas
         sel = (newLeftEnd << 1) | 1;
     }
 
+    // STATE_SET_EXPORT_RANGE
+    private void keyPressedOnSetExportRange(int keyCode)
+    {
+        switch (keyCode)
+        {
+        case KEY_NUM0:
+        case KEY_NUM1:
+        case KEY_NUM2:
+        case KEY_NUM3:
+        case KEY_NUM4:
+        case KEY_NUM5:
+        case KEY_NUM6:
+        case KEY_NUM7:
+        case KEY_NUM8:
+        case KEY_NUM9:
+            if (sel >= 16)
+            {
+                // TODO
+                // setValueDigit(keyCode - KEY_NUM0);
+                keyCode = getKeyCode(RIGHT);
+            }
+            break;
+        case KEY_CLR:
+            keyCode = getKeyCode(FIRE);
+            if (sel < 16)
+            {
+                sel = 3;
+            }
+            break;
+        default:
+            break;
+        }
+        switch (getGameAction(keyCode))
+        {
+        case DOWN:
+            if (sel < 16)
+            {
+                sel = (sel + 1) % 4;
+            }
+            else
+            {
+                // TODO
+                // editValue(-1);
+            }
+            render();
+            break;
+        case UP:
+            if (sel < 16)
+            {
+                    sel = (sel + 3) % 4;
+            }
+            else
+            {
+                // TODO
+                // editValue(1);
+            }
+            render();
+            break;
+        case LEFT:
+            if (sel >= 16)
+            {
+                // TODO
+                // moveEditSelect(1);
+                render();
+            }
+            break;
+        case RIGHT:
+            if (sel >= 16)
+            {
+                // TODO
+                // moveEditSelect(-1);
+                render();
+            }
+            break;
+        case FIRE:
+            switch (sel)
+            {
+            case 0: // begin of range
+                sel = 16;
+                render();
+                break;
+            case 1: // end of range
+                sel = 32;
+                render();
+                break;
+            case 2: // OK
+                // TODO
+                export();
+                break;
+            case 3: // BACK
+                curElement = null;
+                appState = STATE_DATASET_MENU;
+                sel = 0;
+                render();
+                break;
+            default:
+                if (sel >= 16)
+                {
+                    sel = sel / 16 - 1;
+                    render();
+                }
+                break;
+            }
+        default:
+            break;
+        }
+    }
+
     // STATE_CONFIRM_DELETE_DATA and STATE_CONFIRM_DELETE_DATASET
     private void keyPressedOnConfirmDelete(int keyCode)
     {
@@ -1866,7 +2068,9 @@ final class AppMain extends GameCanvas
                 // TODO
                 // export();
                 appState = STATE_SET_EXPORT_RANGE;
-                // sel = ????;
+                sel = 0;
+                rangeBegin = Storage.getFirstElement().x;
+                rangeEnd = Storage.getLastElement().x;
                 render();
                 break;
             case 4: // DELETE
