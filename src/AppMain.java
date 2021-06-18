@@ -1834,7 +1834,6 @@ final class AppMain extends GameCanvas
                     setTicker(new Ticker("no data"));
                     break;
                 }
-                // TODO
                 viewTop = Storage.elements.length - 1;
                 sel = viewTop;
                 if (values == null)
@@ -1861,7 +1860,6 @@ final class AppMain extends GameCanvas
                 export();
                 break;
             case 4: // DELETE
-                // TODO
                 appState = STATE_CONFIRM_DELETE_DATASET;
                 sel = 1;
                 render();
