@@ -213,7 +213,7 @@ final class Storage
     {
         dataRS = close(dataRS);
     }
-    
+
     static int lowerBound(int xValue)
     {
         if (elements == null || elements.length == 0)
@@ -245,7 +245,7 @@ final class Storage
         }
         return 0;
     }
-    
+
     static int rangeSize(int begin, int end)
     {
         if (elements == null || elements.length == 0)

@@ -83,6 +83,14 @@ final class AppMain extends GameCanvas
         for (int i = 0; i < Storage.elements.length; i++)
         {
             Element e = Storage.elements[i];
+            if (e.x < rangeBegin)
+            {
+                continue;
+            }
+            if (e.x > rangeEnd)
+            {
+                break;
+            }
             sb.append(curEntry.valueXString(e))
                 .append(',')
                 .append(curEntry.valueYString(e))
@@ -1269,7 +1277,6 @@ final class AppMain extends GameCanvas
                 if (sel >= 16)
                 {
                     sel = sel / 16 - 1;
-                    calcExportSampleSize();
                     int rsz = Storage.rangeSize(rangeBegin, rangeEnd);
                     rangeSize = Integer.toString(rsz);
                     rangeCharSize = Integer.toString(rsz * exportSampleSize);
