@@ -12,7 +12,8 @@ final class AppMain extends GameCanvas
         STATE_SHOW_DATA = 5,
         STATE_MODIFY_DATA = 6,
         STATE_CONFIRM_DELETE_DATA = 7,
-        STATE_CONFIRM_DELETE_DATASET = 8;
+        STATE_CONFIRM_DELETE_DATASET = 8,
+        STATE_SET_EXPORT_RANGE = 9;
 
     static final int
         DISP_W = 240,
@@ -33,7 +34,10 @@ final class AppMain extends GameCanvas
         leftEnd = 0,
         rightEnd = 0,
         avgAllY = 0,
-        avgViewY = 0;
+        avgViewY = 0,
+        rangeBegin = 0,
+        rangeEnd = 0,
+        exportSampleSize;
 
     private static Entry
         curEntry = null;
@@ -47,7 +51,9 @@ final class AppMain extends GameCanvas
         valueMaxY = "",
         valueMinY = "",
         valueAvgAllY = "",
-        valueAvgViewY = "";
+        valueAvgViewY = "",
+        rangeSize = "",
+        rangeCharSize = "";
 
     private static String[][]
         values = null;
@@ -77,12 +83,34 @@ final class AppMain extends GameCanvas
         for (int i = 0; i < Storage.elements.length; i++)
         {
             Element e = Storage.elements[i];
+            if (e.x < rangeBegin)
+            {
+                continue;
+            }
+            if (e.x > rangeEnd)
+            {
+                break;
+            }
             sb.append(curEntry.valueXString(e))
                 .append(',')
                 .append(curEntry.valueYString(e))
                 .append('\n');
         }
         GraphMIDlet.showExportTextBox(sb.toString());
+    }
+
+    private void calcExportSampleSize()
+    {
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < 8; i++)
+        {
+            Element e = Storage.elements[(Storage.elements.length * i) >> 3];
+            sb.append(curEntry.valueXString(e))
+                .append(',')
+                .append(curEntry.valueYString(e))
+                .append('\n');
+        }
+        exportSampleSize = sb.length() >> 3;
     }
 
     protected void keyRepeated(int keyCode)
@@ -126,6 +154,9 @@ final class AppMain extends GameCanvas
         case STATE_CONFIRM_DELETE_DATASET:
             keyPressedOnConfirmDelete(keyCode);
             break;
+        case STATE_SET_EXPORT_RANGE:
+            keyPressedOnSetExportRange(keyCode);
+            break;
         default:
             break;
         }
@@ -167,11 +198,135 @@ final class AppMain extends GameCanvas
         case STATE_CONFIRM_DELETE_DATASET:
             renderForConfirmDelete(g);
             break;
+        case STATE_SET_EXPORT_RANGE:
+            renderForSetExportRange(g);
+            break;
         default:
             break;
         }
 
         flushGraphics();
+    }
+
+    // STATE_SET_EXPORT_RANGE
+    void renderForSetExportRange(Graphics g)
+    {
+        g.setColor(0xFFFFFF);
+
+        g.drawString(
+            curEntry.title,
+            20,
+            10,
+            Graphics.LEFT|Graphics.TOP
+        );
+
+        g.drawString(
+            "SET EXPORT RANGE",
+            20,
+            30,
+            Graphics.LEFT|Graphics.TOP
+        );
+
+        g.drawString(
+            "begin",
+            30,
+            50,
+            Graphics.LEFT|Graphics.TOP
+        );
+
+        renderEditElement(
+            g,
+            curEntry.xAxisType,
+            rangeBegin,
+            70
+        );
+
+        if (sel >= 16 && sel < 32)
+        {
+            g.setColor(0x00FFFF);
+            g.drawRect(
+                DISP_W-40 - (sel&15)*18+2,
+                70,
+                14,
+                SMALL_FONT.getHeight()
+            );
+            g.setColor(0x002222);
+            g.drawRect(20, 50, DISP_W-40, 50);
+        }
+
+        if (sel == 0)
+        {
+            g.setColor(0x00FFFF);
+            g.drawRect(20, 50, DISP_W-40, 50);
+        }
+
+        g.setColor(0xFFFFFF);
+        g.drawString(
+            "end",
+            30,
+            110,
+            Graphics.LEFT|Graphics.TOP
+        );
+
+        renderEditElement(
+            g,
+            curEntry.xAxisType,
+            rangeEnd,
+            130
+        );
+
+        if (sel >= 32)
+        {
+            g.setColor(0x00FFFF);
+            g.drawRect(
+                DISP_W-40 - (sel&15)*18+2,
+                130,
+                14,
+                SMALL_FONT.getHeight()
+            );
+            g.setColor(0x002222);
+            g.drawRect(20, 110, DISP_W-40, 50);
+        }
+
+        if (sel == 1)
+        {
+            g.setColor(0x00FFFF);
+            g.drawRect(20, 110, DISP_W-40, 50);
+        }
+
+        // TODO (show range size)
+        g.setColor(0xFFFFFF);
+
+        g.drawString(
+            "size",
+            30,
+            170,
+            Graphics.LEFT|Graphics.TOP
+        );
+
+        g.drawString(
+            rangeSize,
+            DISP_W - 30,
+            170,
+            Graphics.RIGHT|Graphics.TOP
+        );
+
+        g.drawString(
+            "char size",
+            30,
+            190,
+            Graphics.LEFT|Graphics.TOP
+        );
+
+        g.drawString(
+            rangeCharSize,
+            DISP_W - 30,
+            190,
+            Graphics.RIGHT|Graphics.TOP
+        );
+
+        renderButton(g, "OK", sel == 2, 220);
+        renderButton(g, "BACK", sel == 3, 240);
     }
 
     // STATE_CONFIRM_DELETE_DATA and STATE_CONFIRM_DELETE_DATASET
@@ -1028,6 +1183,112 @@ final class AppMain extends GameCanvas
         sel = (newLeftEnd << 1) | 1;
     }
 
+    // STATE_SET_EXPORT_RANGE
+    private void keyPressedOnSetExportRange(int keyCode)
+    {
+        switch (keyCode)
+        {
+        case KEY_NUM0:
+        case KEY_NUM1:
+        case KEY_NUM2:
+        case KEY_NUM3:
+        case KEY_NUM4:
+        case KEY_NUM5:
+        case KEY_NUM6:
+        case KEY_NUM7:
+        case KEY_NUM8:
+        case KEY_NUM9:
+            if (sel >= 16)
+            {
+                setValueDigitForRange(keyCode - KEY_NUM0);
+                keyCode = getKeyCode(RIGHT);
+            }
+            break;
+        case KEY_CLR:
+            keyCode = getKeyCode(FIRE);
+            if (sel < 16)
+            {
+                sel = 3;
+            }
+            break;
+        default:
+            break;
+        }
+        switch (getGameAction(keyCode))
+        {
+        case DOWN:
+            if (sel < 16)
+            {
+                sel = (sel + 1) % 4;
+            }
+            else
+            {
+                editValueForRange(-1);
+            }
+            render();
+            break;
+        case UP:
+            if (sel < 16)
+            {
+                    sel = (sel + 3) % 4;
+            }
+            else
+            {
+                editValueForRange(1);
+            }
+            render();
+            break;
+        case LEFT:
+            if (sel >= 16)
+            {
+                moveEditSelectForRange(1);
+                render();
+            }
+            break;
+        case RIGHT:
+            if (sel >= 16)
+            {
+                moveEditSelectForRange(-1);
+                render();
+            }
+            break;
+        case FIRE:
+            switch (sel)
+            {
+            case 0: // begin of range
+                sel = 16;
+                render();
+                break;
+            case 1: // end of range
+                sel = 32;
+                render();
+                break;
+            case 2: // OK
+                // TODO
+                export();
+                break;
+            case 3: // BACK
+                curElement = null;
+                appState = STATE_DATASET_MENU;
+                sel = 0;
+                render();
+                break;
+            default:
+                if (sel >= 16)
+                {
+                    sel = sel / 16 - 1;
+                    int rsz = Storage.rangeSize(rangeBegin, rangeEnd);
+                    rangeSize = Integer.toString(rsz);
+                    rangeCharSize = Integer.toString(rsz * exportSampleSize);
+                    render();
+                }
+                break;
+            }
+        default:
+            break;
+        }
+    }
+
     // STATE_CONFIRM_DELETE_DATA and STATE_CONFIRM_DELETE_DATASET
     private void keyPressedOnConfirmDelete(int keyCode)
     {
@@ -1585,6 +1846,111 @@ final class AppMain extends GameCanvas
         }
     }
 
+    private void setValueDigitForRange(int digit)
+    {
+        int type = curEntry.xAxisType;
+        int value = sel >= 32
+                 ? rangeEnd
+                 : rangeBegin;
+        int pos = sel & 15;
+        switch (type)
+        {
+        case Entry.POINT_0:
+        case Entry.POINT_1:
+        case Entry.POINT_2:
+        case Entry.POINT_3:
+        case Entry.POINT_4:
+        case Entry.POINT_5:
+        case Entry.POINT_6:
+        case Entry.POINT_7:
+        case Entry.POINT_8:
+            if (pos == 8)
+            {
+                return;
+            }
+        case Entry.COUNTER:
+            value = setDigit(value, pos, digit);
+            break;
+        case Entry.DATE_YMDHM:
+            if (pos < 2)
+            {
+                value = Element.setMinute(
+                    value,
+                    Math.min(59, setDigit(
+                        Element.getMinute(value),
+                        pos,
+                        digit
+                    ))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_YMDH:
+            if (pos < 2)
+            {
+                value = Element.setHour(
+                    value,
+                    Math.min(23, setDigit(
+                        Element.getHour(value),
+                        pos,
+                        digit
+                    ))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_YMD:
+            if (pos < 2)
+            {
+                value = Element.setDay(
+                    value,
+                    Math.max(1, Math.min(31, setDigit(
+                            Element.getDay(value),
+                            pos,
+                            digit
+                    )))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_YM:
+            if (pos < 2)
+            {
+                value = Element.setMonth(
+                    value,
+                    Math.max(1, Math.min(12, setDigit(
+                        Element.getMonth(value),
+                        pos,
+                        digit
+                    )))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_Y:
+            int y = setDigit(
+                Element.getYear(value) % 100,
+                pos,
+                digit
+            );
+            value = Element.setYear(
+                value,
+                y < 45 ? (2000+y) : (1900+y)
+            );
+            break;
+        default:
+            break;
+        }
+        if (sel >= 32)
+        {
+            rangeEnd = value;
+        }
+        else
+        {
+            rangeBegin = value;
+        }
+    }
+
     static final int[] DIG = new int[]{
         1,
         10,
@@ -1730,11 +2096,162 @@ final class AppMain extends GameCanvas
         }
     }
 
+    private void editValueForRange(int changes)
+    {
+        int type = curEntry.xAxisType;
+        int value = sel >= 32
+                 ? rangeEnd
+                 : rangeBegin;
+        int pos = sel & 15;
+        switch (type)
+        {
+        case Entry.POINT_0:
+        case Entry.POINT_1:
+        case Entry.POINT_2:
+        case Entry.POINT_3:
+        case Entry.POINT_4:
+        case Entry.POINT_5:
+        case Entry.POINT_6:
+        case Entry.POINT_7:
+        case Entry.POINT_8:
+            if (pos == 8)
+            {
+                value = -value;
+                break;
+            }
+        case Entry.COUNTER:
+            value = changeDigit(value, pos, changes, 10);
+            break;
+        case Entry.DATE_YMDHM:
+            if (pos < 2)
+            {
+                value = Element.setMinute(
+                    value,
+                    Math.min(59, changeDigit(
+                        Element.getMinute(value),
+                        pos,
+                        changes,
+                        10 - 4*pos
+                    ))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_YMDH:
+            if (pos < 2)
+            {
+                value = Element.setHour(
+                    value,
+                    Math.min(23, changeDigit(
+                        Element.getHour(value),
+                        pos,
+                        changes,
+                        10 - 7*pos
+                    ))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_YMD:
+            if (pos < 2)
+            {
+                value = Element.setDay(
+                    value,
+                    Math.max(1, Math.min(31, changeDigit(
+                            Element.getDay(value),
+                            pos,
+                            changes,
+                            10 - 6*pos
+                    )))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_YM:
+            if (pos < 2)
+            {
+                value = Element.setMonth(
+                    value,
+                    Math.max(1, Math.min(12, changeDigit(
+                        Element.getMonth(value),
+                        pos,
+                        changes,
+                        10 - 8*pos
+                    )))
+                );
+                break;
+            }
+            pos -= 2;
+        case Entry.DATE_Y:
+            int y = changeDigit(
+                Element.getYear(value) % 100,
+                pos,
+                changes,
+                10
+            );
+            value = Element.setYear(
+                value,
+                y < 45 ? (2000+y) : (1900+y)
+            );
+            break;
+        default:
+            break;
+        }
+        if (sel >= 32)
+        {
+            rangeEnd = value;
+        }
+        else
+        {
+            rangeBegin = value;
+        }
+    }
+
     private void moveEditSelect(int move)
     {
         int type = sel >= 32
                  ? curEntry.yAxisType
                  : curEntry.xAxisType;
+        int pos = sel & 15;
+        switch (type)
+        {
+        case Entry.POINT_0:
+        case Entry.POINT_1:
+        case Entry.POINT_2:
+        case Entry.POINT_3:
+        case Entry.POINT_4:
+        case Entry.POINT_5:
+        case Entry.POINT_6:
+        case Entry.POINT_7:
+        case Entry.POINT_8:
+            sel ^= pos ^ ((pos + move + 9) % 9);
+            break;
+        case Entry.COUNTER:
+            sel ^= pos ^ ((pos + move + 8) % 8);
+            break;
+        case Entry.DATE_YMDHM:
+            sel ^= pos ^ ((pos + move + 10) % 10);
+            break;
+        case Entry.DATE_YMDH:
+            sel ^= pos ^ ((pos + move + 8) % 8);
+            break;
+        case Entry.DATE_YMD:
+            sel ^= pos ^ ((pos + move + 6) % 6);
+            break;
+        case Entry.DATE_YM:
+            sel ^= pos ^ ((pos + move + 4) % 4);
+            break;
+        case Entry.DATE_Y:
+            sel ^= pos ^ ((pos + move + 2) % 2);
+            break;
+        default:
+            break;
+        }
+    }
+
+    private void moveEditSelectForRange(int move)
+    {
+        int type = curEntry.xAxisType;
         int pos = sel & 15;
         switch (type)
         {
@@ -1857,7 +2374,16 @@ final class AppMain extends GameCanvas
                     break;
                 }
                 // TODO
-                export();
+                // export();
+                appState = STATE_SET_EXPORT_RANGE;
+                sel = 0;
+                rangeBegin = Storage.getFirstElement().x;
+                rangeEnd = Storage.getLastElement().x;
+                calcExportSampleSize();
+                int rsz = Storage.rangeSize(rangeBegin, rangeEnd);
+                rangeSize = Integer.toString(rsz);
+                rangeCharSize = Integer.toString(rsz * exportSampleSize);
+                render();
                 break;
             case 4: // DELETE
                 appState = STATE_CONFIRM_DELETE_DATASET;

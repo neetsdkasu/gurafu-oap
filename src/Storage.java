@@ -214,6 +214,56 @@ final class Storage
         dataRS = close(dataRS);
     }
 
+    static int lowerBound(int xValue)
+    {
+        if (elements == null || elements.length == 0)
+        {
+            return 0;
+        }
+        for (int i = 0; i < elements.length; i++)
+        {
+            if (xValue <= elements[i].x)
+            {
+                return i;
+            }
+        }
+        return elements.length - 1;
+    }
+
+    static int upperBound(int xValue)
+    {
+        if (elements == null || elements.length == 0)
+        {
+            return 0;
+        }
+        for (int i = elements.length - 1; i >= 0; i--)
+        {
+            if (elements[i].x <= xValue)
+            {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    static int rangeSize(int begin, int end)
+    {
+        if (elements == null || elements.length == 0)
+        {
+            return 0;
+        }
+        return upperBound(end) - lowerBound(begin) + 1;
+    }
+
+    static Element getFirstElement()
+    {
+        if (elements == null || elements.length == 0)
+        {
+            return null;
+        }
+        return elements[0];
+    }
+
     static Element getLastElement()
     {
         if (elements == null || elements.length == 0)
