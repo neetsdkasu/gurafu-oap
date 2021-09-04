@@ -294,7 +294,6 @@ final class AppMain extends GameCanvas
             g.drawRect(20, 110, DISP_W-40, 50);
         }
 
-        // TODO (show range size)
         g.setColor(0xFFFFFF);
 
         g.drawString(
@@ -1264,7 +1263,6 @@ final class AppMain extends GameCanvas
                 render();
                 break;
             case 2: // OK
-                // TODO
                 export();
                 break;
             case 3: // BACK
@@ -1797,9 +1795,13 @@ final class AppMain extends GameCanvas
         case Entry.DATE_YMD:
             if (pos < 2)
             {
+                int maxDay = Entry.getDaysOfMonth(
+                    Element.getYear(value),
+                    Element.getMonth(value)
+                );
                 value = Element.setDay(
                     value,
-                    Math.max(1, Math.min(31, setDigit(
+                    Math.max(1, Math.min(maxDay, setDigit(
                             Element.getDay(value),
                             pos,
                             digit
@@ -1819,6 +1821,16 @@ final class AppMain extends GameCanvas
                         digit
                     )))
                 );
+                value = Element.setDay(
+                    value,
+                    Math.max(1, Math.min(
+                        Entry.getDaysOfMonth(
+                            Element.getYear(value),
+                            Element.getMonth(value)
+                        ),
+                        Element.getDay(value)
+                    ))
+                );
                 break;
             }
             pos -= 2;
@@ -1831,6 +1843,16 @@ final class AppMain extends GameCanvas
             value = Element.setYear(
                 value,
                 y < 45 ? (2000+y) : (1900+y)
+            );
+            value = Element.setDay(
+                value,
+                Math.max(1, Math.min(
+                    Entry.getDaysOfMonth(
+                        Element.getYear(value),
+                        Element.getMonth(value)
+                    ),
+                    Element.getDay(value)
+                ))
             );
             break;
         default:
@@ -1902,9 +1924,13 @@ final class AppMain extends GameCanvas
         case Entry.DATE_YMD:
             if (pos < 2)
             {
+                int maxDay = Entry.getDaysOfMonth(
+                    Element.getYear(value),
+                    Element.getMonth(value)
+                );
                 value = Element.setDay(
                     value,
-                    Math.max(1, Math.min(31, setDigit(
+                    Math.max(1, Math.min(maxDay, setDigit(
                             Element.getDay(value),
                             pos,
                             digit
@@ -1924,6 +1950,16 @@ final class AppMain extends GameCanvas
                         digit
                     )))
                 );
+                value = Element.setDay(
+                    value,
+                    Math.max(1, Math.min(
+                        Entry.getDaysOfMonth(
+                            Element.getYear(value),
+                            Element.getMonth(value)
+                        ),
+                        Element.getDay(value)
+                    ))
+                );
                 break;
             }
             pos -= 2;
@@ -1936,6 +1972,16 @@ final class AppMain extends GameCanvas
             value = Element.setYear(
                 value,
                 y < 45 ? (2000+y) : (1900+y)
+            );
+            value = Element.setDay(
+                value,
+                Math.max(1, Math.min(
+                    Entry.getDaysOfMonth(
+                        Element.getYear(value),
+                        Element.getMonth(value)
+                    ),
+                    Element.getDay(value)
+                ))
             );
             break;
         default:
@@ -2044,9 +2090,13 @@ final class AppMain extends GameCanvas
         case Entry.DATE_YMD:
             if (pos < 2)
             {
+                int maxDay = Entry.getDaysOfMonth(
+                    Element.getYear(value),
+                    Element.getMonth(value)
+                );
                 value = Element.setDay(
                     value,
-                    Math.max(1, Math.min(31, changeDigit(
+                    Math.max(1, Math.min(maxDay, changeDigit(
                             Element.getDay(value),
                             pos,
                             changes,
@@ -2068,6 +2118,16 @@ final class AppMain extends GameCanvas
                         10 - 8*pos
                     )))
                 );
+                value = Element.setDay(
+                    value,
+                    Math.max(1, Math.min(
+                        Entry.getDaysOfMonth(
+                            Element.getYear(value),
+                            Element.getMonth(value)
+                        ),
+                        Element.getDay(value)
+                    ))
+                );
                 break;
             }
             pos -= 2;
@@ -2081,6 +2141,16 @@ final class AppMain extends GameCanvas
             value = Element.setYear(
                 value,
                 y < 45 ? (2000+y) : (1900+y)
+            );
+            value = Element.setDay(
+                value,
+                Math.max(1, Math.min(
+                    Entry.getDaysOfMonth(
+                        Element.getYear(value),
+                        Element.getMonth(value)
+                    ),
+                    Element.getDay(value)
+                ))
             );
             break;
         default:
@@ -2155,9 +2225,13 @@ final class AppMain extends GameCanvas
         case Entry.DATE_YMD:
             if (pos < 2)
             {
+                int maxDay = Entry.getDaysOfMonth(
+                    Element.getYear(value),
+                    Element.getMonth(value)
+                );
                 value = Element.setDay(
                     value,
-                    Math.max(1, Math.min(31, changeDigit(
+                    Math.max(1, Math.min(maxDay, changeDigit(
                             Element.getDay(value),
                             pos,
                             changes,
@@ -2179,6 +2253,16 @@ final class AppMain extends GameCanvas
                         10 - 8*pos
                     )))
                 );
+                value = Element.setDay(
+                    value,
+                    Math.max(1, Math.min(
+                        Entry.getDaysOfMonth(
+                            Element.getYear(value),
+                            Element.getMonth(value)
+                        ),
+                        Element.getDay(value)
+                    ))
+                );
                 break;
             }
             pos -= 2;
@@ -2192,6 +2276,16 @@ final class AppMain extends GameCanvas
             value = Element.setYear(
                 value,
                 y < 45 ? (2000+y) : (1900+y)
+            );
+            value = Element.setDay(
+                value,
+                Math.max(1, Math.min(
+                    Entry.getDaysOfMonth(
+                        Element.getYear(value),
+                        Element.getMonth(value)
+                    ),
+                    Element.getDay(value)
+                ))
             );
             break;
         default:
@@ -2373,8 +2467,6 @@ final class AppMain extends GameCanvas
                     setTicker(new Ticker("no data"));
                     break;
                 }
-                // TODO
-                // export();
                 appState = STATE_SET_EXPORT_RANGE;
                 sel = 0;
                 rangeBegin = Storage.getFirstElement().x;
