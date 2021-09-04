@@ -294,7 +294,6 @@ final class AppMain extends GameCanvas
             g.drawRect(20, 110, DISP_W-40, 50);
         }
 
-        // TODO (show range size)
         g.setColor(0xFFFFFF);
 
         g.drawString(
@@ -1264,7 +1263,6 @@ final class AppMain extends GameCanvas
                 render();
                 break;
             case 2: // OK
-                // TODO
                 export();
                 break;
             case 3: // BACK
@@ -2469,8 +2467,6 @@ final class AppMain extends GameCanvas
                     setTicker(new Ticker("no data"));
                     break;
                 }
-                // TODO
-                // export();
                 appState = STATE_SET_EXPORT_RANGE;
                 sel = 0;
                 rangeBegin = Storage.getFirstElement().x;
